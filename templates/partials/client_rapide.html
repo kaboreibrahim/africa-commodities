@@ -1,0 +1,8 @@
+<form id="ajout-client-rapide" class="ajout-rapide" method="post" action="{% url 'interface:clients' societe.code %}"
+      hx-post="{% url 'interface:clients' societe.code %}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <input type="hidden" name="rapide" value="1">
+  <input type="hidden" name="retour" value="{% url 'interface:lignes' societe.code %}">
+  {% include "partials/champ.html" with champ=form.nom %}
+  <button type="submit" class="btn btn--secondaire">+ Ajouter le client</button>
+</form>

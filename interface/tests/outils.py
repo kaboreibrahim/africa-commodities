@@ -2,6 +2,7 @@
 import re
 from contextlib import contextmanager
 
+from django.core.cache import cache
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 
@@ -25,6 +26,10 @@ class JeuInterfaceMixin(JeuUtilisateursMixin):
         super().setUpTestData()
         for user in (cls.admin_groupe, cls.responsable_ooa):
             activer_totp(user)
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()  # la règle en vigueur est mise en cache ; le rollback des tests ne la vide pas
 
     def connecter(self, user):
         self.client.force_login(user)

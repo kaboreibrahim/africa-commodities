@@ -132,6 +132,20 @@
     });
   });
 
+  /* Client ajouté (ajout rapide) : il est sélectionné dès que la liste déroulante est rafraîchie. */
+  var clientAjoute = null;
+  document.addEventListener("clientsModifies", function (evt) {
+    clientAjoute = evt.detail && evt.detail.nom ? String(evt.detail.id) : null;
+  });
+  document.addEventListener("htmx:afterSwap", function (evt) {
+    var champ = evt.detail.target;
+    if (clientAjoute && champ && champ.id === "champ-client-ajout") {
+      var liste = document.getElementById("id_client");
+      if (liste) { liste.value = clientAjoute; }
+      clientAjoute = null;
+    }
+  });
+
   document.addEventListener("chargesCouvertes", function (evt) {
     var d = evt.detail || {};
     // Simple notification : les confettis restent réservés à l'objectif.

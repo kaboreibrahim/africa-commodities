@@ -1,0 +1,5 @@
+<div id="champ-client-ajout" class="champ-client"
+     hx-get="{% url 'interface:champ_client' societe.code %}" hx-trigger="clientsModifies from:body"
+     hx-include="#id_client" hx-target="this" hx-swap="outerHTML">
+  {% include "partials/champ.html" with champ=form.client %}
+</div>

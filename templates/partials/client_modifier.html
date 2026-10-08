@@ -1,0 +1,19 @@
+<div class="dialogue__corps">
+  <div class="dialogue__entete">
+    <h2 id="titre-dialogue">Modifier le client {{ client.nom }}</h2>
+    <button type="button" class="btn btn--secondaire btn--petit" data-fermer-dialogue aria-label="Fermer">✕</button>
+  </div>
+  <form method="post" action="{% url 'interface:client_modifier' societe.code client.pk %}"
+        hx-post="{% url 'interface:client_modifier' societe.code client.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML">
+    {% csrf_token %}
+    <div class="formulaire">
+      {% include "partials/champ.html" with champ=form.nom %}
+      {% include "partials/champ.html" with champ=form.telephone %}
+      {% include "partials/champ.html" with champ=form.email %}
+    </div>
+    <div class="formulaire__actions">
+      <button type="submit">✔ Enregistrer</button>
+      <button type="button" class="btn btn--secondaire" data-fermer-dialogue>Annuler</button>
+    </div>
+  </form>
+</div>

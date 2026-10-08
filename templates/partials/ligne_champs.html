@@ -4,7 +4,7 @@
   {% if form.extra %}{% include "partials/champ.html" with champ=form.extra %}{% endif %}
   {% include "partials/champ.html" with champ=form.reference %}
   {% include "partials/champ.html" with champ=form.projet %}
-  {% include "partials/champ.html" with champ=form.client %}
+  {% if prefixe == "ajout-" %}{% include "partials/champ_client.html" %}{% else %}{% include "partials/champ.html" with champ=form.client %}{% endif %}
   {% include "partials/champ.html" with champ=form.quantite %}
   {% include "partials/champ.html" with champ=form.marge_unitaire %}
   {% include "partials/champ.html" with champ=form.observation large=True %}

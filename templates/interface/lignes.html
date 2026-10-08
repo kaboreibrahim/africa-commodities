@@ -3,6 +3,12 @@
 {% block titre %}{{ societe.code|upper }} – {{ societe.libelle_ligne_pluriel|majuscule_initiale }}{% endblock %}
 {% block contenu %}
   {% if form %}{% include "partials/ligne_form.html" %}{% endif %}
+  {% if form and peut_gerer %}
+    <details class="carte no-print">
+      <summary>Nouveau client ? Ajoutez-le ici, il sera aussitôt proposé dans le formulaire.</summary>
+      {% include "partials/client_rapide.html" with form=form_client %}
+    </details>
+  {% endif %}
 
   <section class="carte">
     <h2>{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés

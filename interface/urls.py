@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, views_lignes
+from . import views, views_clients, views_lignes
 
 app_name = "interface"
 
@@ -21,6 +21,11 @@ urlpatterns = [
          name="ligne_supprimer"),
     path("s/<slug:code_societe>/lignes/<int:pk>/restaurer/", views_lignes.LigneRestaurerView.as_view(),
          name="ligne_restaurer"),
-    path("s/<slug:code_societe>/clients/", views.PageAVenirView.as_view(section="clients"), name="clients"),
+    path("s/<slug:code_societe>/lignes/champ-client/", views_clients.ChampClientView.as_view(), name="champ_client"),
+    path("s/<slug:code_societe>/clients/", views_clients.ClientsView.as_view(), name="clients"),
+    path("s/<slug:code_societe>/clients/<int:pk>/modifier/", views_clients.ClientModifierView.as_view(),
+         name="client_modifier"),
+    path("s/<slug:code_societe>/clients/<int:pk>/retirer/", views_clients.ClientRetirerView.as_view(),
+         name="client_retirer"),
     path("s/<slug:code_societe>/corbeille/", views_lignes.CorbeilleView.as_view(), name="corbeille"),
 ]

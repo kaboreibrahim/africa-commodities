@@ -12,7 +12,7 @@ from django.db.models.functions import Coalesce, TruncMonth
 
 from repartition.models import RegleRepartition
 from repartition.services import arrondi_fcfa
-from societes.models import DepenseMensuelle, ObjectifMensuel, Societe, premier_du_mois
+from societes.models import Client, DepenseMensuelle, ObjectifMensuel, Societe, premier_du_mois
 
 from .models import Ligne
 
@@ -368,3 +368,10 @@ def projets_de_la_societe(societe: Societe) -> list[str]:
     """N° de projet déjà utilisés par la société (filtre de la liste, 1 requête)."""
     return list(Ligne.objects.filter(societe=societe).exclude(projet="").order_by("projet")
                 .values_list("projet", flat=True).distinct())
+
+
+def clients_avec_nb_lignes(societe: Societe):
+    """Clients actifs de la société avec `nb_lignes` (lignes actives qui les utilisent), en 1 requête."""
+    return (Client.objects.filter(societe=societe)
+            .annotate(nb_lignes=Count("lignes", filter=Q(lignes__supprime_le__isnull=True)))
+            .order_by("nom"))

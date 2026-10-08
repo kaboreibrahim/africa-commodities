@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load format_fr %}
+{% block titre %}Règle de répartition{% endblock %}
+{% block sous_titre %}Règle commune à toutes les sociétés du groupe{% endblock %}
+{% block contenu %}
+  <section class="carte">
+    <h2>Règle en vigueur{% if regle %} <small>— depuis le {{ regle.date_debut|date:"d/m/Y" }}</small>{% endif %}</h2>
+    {% if regle %}
+      <ol class="schema-regle">
+        <li><strong>{{ regle.pct_charges|pct }}</strong> de la marge va aux <strong>charges</strong>.</li>
+        <li>Sur le reste, <strong>{{ regle.pct_africa_commodities|pct }}</strong> va à <strong>Africa Commodities</strong> (tête du groupe).</li>
+        <li>Le solde est partagé entre <strong>Risques</strong>, <strong>Provision</strong> et <strong>Comptes</strong> :
+          {{ regle.parts_risques }} / {{ regle.parts_provision }} / {{ regle.parts_comptes }} part(s).
+          L'écart d'arrondi (quelques francs au plus) va aux Comptes : la somme des parts est toujours égale à la marge.</li>
+      </ol>
+      {% if regle.note %}<p class="aide">Note : {{ regle.note }}</p>{% endif %}
+      <p class="aide">Une nouvelle règle ne s'applique qu'à partir de sa date de début : <strong>les lignes déjà enregistrées gardent la répartition calculée avec la règle de leur date</strong>.</p>
+    {% else %}
+      <p class="alerte">Aucune règle n'est en vigueur aujourd'hui : la saisie est impossible tant qu'une règle n'est pas créée.</p>
+    {% endif %}
+    {% if peut_administrer %}
+      <p><a class="btn btn--secondaire" href="{% url 'admin:repartition_reglerepartition_add' %}">Créer une nouvelle règle</a></p>
+    {% endif %}
+  </section>
+
+  {% if exemples %}
+    <section class="carte">
+      <h2>Exemples chiffrés</h2>
+      <div class="cadre-tableau"><table class="tableau tableau--simple">
+        <caption class="visuellement-cache">Répartition de deux marges d'exemple avec la règle en vigueur</caption>
+        <thead><tr><th scope="col">Marge</th><th scope="col" class="n">Charges</th><th scope="col" class="n">Africa Com.</th>
+          <th scope="col" class="n">Risques</th><th scope="col" class="n">Provision</th><th scope="col" class="n">Comptes</th></tr></thead>
+        <tbody>{% for r in exemples %}
+          <tr><th scope="row">{{ r.marge|fcfa }}</th><td class="n">{{ r.charges|fcfa }}</td><td class="n texte-ac">{{ r.africa_commodities|fcfa }}</td>
+            <td class="n">{{ r.risques|fcfa }}</td><td class="n">{{ r.provision|fcfa }}</td><td class="n">{{ r.comptes|fcfa }}</td></tr>
+        {% endfor %}</tbody>
+      </table></div>
+    </section>
+  {% endif %}
+
+  <section class="carte">
+    <h2>Historique des règles</h2>
+    <div class="cadre-tableau"><table class="tableau tableau--simple">
+      <caption class="visuellement-cache">Historique des règles de répartition</caption>
+      <thead><tr><th scope="col">Applicable à partir du</th><th scope="col" class="n">Charges</th><th scope="col" class="n">Africa Com. (du reste)</th>
+        <th scope="col">Parts risques / provision / comptes</th><th scope="col">Note</th></tr></thead>
+      <tbody>{% for r in regles %}
+        <tr><td>{{ r.date_debut|date:"d/m/Y" }}{% if r.pk == regle.pk %} <span class="etiquette">en vigueur</span>{% endif %}</td>
+          <td class="n">{{ r.pct_charges|pct }}</td><td class="n">{{ r.pct_africa_commodities|pct }}</td>
+          <td>{{ r.parts_risques }} / {{ r.parts_provision }} / {{ r.parts_comptes }}</td><td class="texte-long">{{ r.note }}</td></tr>
+      {% endfor %}</tbody>
+    </table></div>
+  </section>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% load format_fr %}
+<section class="carte" id="clients">
+  <h2>Clients — {{ societe.nom }} <small>{{ clients|length }} client{{ clients|length|pluralize }}</small></h2>
+  {% if peut_gerer %}
+    <form class="ajout-rapide no-print" method="post" action="{% url 'interface:clients' societe.code %}"
+          hx-post="{% url 'interface:clients' societe.code %}" hx-target="#clients" hx-swap="outerHTML">
+      {% csrf_token %}
+      {% include "partials/champ.html" with champ=form.nom %}
+      {% include "partials/champ.html" with champ=form.telephone %}
+      {% include "partials/champ.html" with champ=form.email %}
+      <button type="submit">+ Ajouter le client</button>
+    </form>
+  {% endif %}
+  <div class="cadre-tableau">
+    <table class="tableau tableau--simple">
+      <caption class="visuellement-cache">Clients de {{ societe.nom }}</caption>
+      <thead><tr><th scope="col">Nom</th><th scope="col">Téléphone</th><th scope="col">E-mail</th>
+        <th scope="col" class="n">Lignes</th>{% if peut_gerer %}<th scope="col"><span class="visuellement-cache">Actions</span></th>{% endif %}</tr></thead>
+      <tbody>
+        {% for c in clients %}
+          <tr>
+            <td><strong>{{ c.nom }}</strong></td>
+            <td>{{ c.telephone }}</td>
+            <td>{{ c.email }}</td>
+            <td class="n">{{ c.nb_lignes|nombre }}</td>
+            {% if peut_gerer %}
+              <td>
+                <div class="actions">
+                  <a class="btn btn--secondaire btn--petit" href="{% url 'interface:client_modifier' societe.code c.pk %}"
+                     hx-get="{% url 'interface:client_modifier' societe.code c.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
+                     aria-label="Modifier {{ c.nom }}">✎</a>
+                  <form method="post" action="{% url 'interface:client_retirer' societe.code c.pk %}"
+                        hx-post="{% url 'interface:client_retirer' societe.code c.pk %}" hx-target="closest tr" hx-swap="outerHTML"
+                        hx-confirm="{% if c.nb_lignes %}{{ c.nom }} est utilisé dans {{ c.nb_lignes }} ligne(s), les lignes existantes ne changent pas. Le retirer de la liste ?{% else %}Retirer {{ c.nom }} de la liste ?{% endif %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn--danger btn--petit" aria-label="Retirer {{ c.nom }}">✕</button>
+                  </form>
+                </div>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="5" class="vide">Aucun client.{% if peut_gerer %} Ajoutez les clients de cette société ici : ils apparaîtront dans le formulaire de saisie.{% endif %}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

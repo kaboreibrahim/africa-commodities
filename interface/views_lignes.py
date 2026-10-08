@@ -27,7 +27,7 @@ from repartition.services import calculer_repartition
 from societes.models import Client, premier_du_mois
 
 from .contexte import GestionSocieteMixin, PageSocieteMixin, regle_en_vigueur
-from .forms import FiltresLignesForm, LigneForm
+from .forms import ClientForm, FiltresLignesForm, LigneForm
 from .htmx import declencher, evenements_franchissement, toast
 
 LIGNES_PAR_PAGE = 50
@@ -114,7 +114,7 @@ class LignesView(LignesMixin, PageSocieteMixin, TemplateView):
             filtres=filtres, periode=valeurs["periode"], page=page, totaux=totaux(qs),
             parametres=parametres.urlencode(), peut_saisir=peut_saisir,
             form=form or (self.formulaire() if peut_saisir else None),
-            regle_apercu=contexte["regle_pied"],
+            regle_apercu=contexte["regle_pied"], form_client=ClientForm(auto_id="rapide_%s"),
         )
         return contexte
 

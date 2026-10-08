@@ -12,6 +12,8 @@ from django.views.generic import FormView, TemplateView
 from comptes import acces
 from core.templatetags.format_fr import fcfa, mois_long
 from operations.selectors import etat_du_mois, tableau_de_bord_societe
+from repartition.models import RegleRepartition
+from repartition.services import calculer_repartition
 from operations.services import franchissements
 from societes.models import DepenseMensuelle
 from societes.services import definir_depenses, definir_objectif
@@ -159,14 +161,22 @@ class VueGroupeView(PageGroupeMixin, TemplateView):
     section = "groupe"
 
 
-class PageAVenirView(PageSocieteMixin, TemplateView):
-    """Provisoire : remplacée lot par lot."""
-
-    template_name = "interface/a_venir.html"
-
-
 class RegleView(InterfaceMixin, TemplateView):
-    template_name = "interface/a_venir.html"
+    """Règle de répartition en vigueur, exemples chiffrés et historique (lecture seule pour tous)."""
+
+    template_name = "interface/regle.html"
+    section = "regle"
+    EXEMPLES = (100_000, 5_000_000)
+
+    def get_context_data(self, **kwargs):
+        contexte = super().get_context_data(**kwargs)
+        regle = contexte["regle_pied"]
+        contexte.update(
+            regle=regle,
+            regles=RegleRepartition.objects.all(),
+            exemples=[calculer_repartition(marge, regle) for marge in self.EXEMPLES] if regle else [],
+        )
+        return contexte
 
 
 # --- Pages d'erreur ---------------------------------------------------------------------------

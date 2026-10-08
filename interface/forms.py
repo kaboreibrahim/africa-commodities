@@ -93,3 +93,18 @@ class FiltresLignesForm(forms.Form):
             "client_id": int(client) if client.isdigit() else None,
             "projet": donnees.get("projet", ""),
         }
+
+
+class ClientForm(forms.Form):
+    nom = forms.CharField(label="Nom du client", max_length=150)
+    telephone = forms.CharField(label="Téléphone", max_length=30, required=False,
+                                widget=forms.TextInput(attrs={"type": "tel", "autocomplete": "off"}))
+    email = forms.EmailField(label="E-mail", required=False)
+
+    def ajouter_erreurs(self, erreur) -> None:
+        """Erreurs du modèle (doublon : « Ce client existe déjà pour cette société. »)."""
+        if hasattr(erreur, "error_dict"):
+            for champ, messages in erreur.message_dict.items():
+                self.add_error(champ if champ in self.fields else "nom", messages)
+        else:
+            self.add_error("nom", erreur.messages)

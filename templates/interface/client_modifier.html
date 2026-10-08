@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titre %}{{ societe.code|upper }} – Client {{ client.nom }}{% endblock %}
+{% block contenu %}
+  <section class="carte">
+    <h2>Modifier le client {{ client.nom }}</h2>
+    <form method="post" action="{% url 'interface:client_modifier' societe.code client.pk %}">
+      {% csrf_token %}
+      <div class="formulaire">
+        {% include "partials/champ.html" with champ=form.nom %}
+        {% include "partials/champ.html" with champ=form.telephone %}
+        {% include "partials/champ.html" with champ=form.email %}
+      </div>
+      <div class="formulaire__actions">
+        <button type="submit">✔ Enregistrer</button>
+        <a class="btn btn--secondaire" href="{% url 'interface:clients' societe.code %}">Annuler</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}
