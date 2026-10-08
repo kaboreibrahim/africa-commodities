@@ -1,0 +1,5 @@
+-r requirements.txt
+
+pip-audit==2.10.1                 # vulnérabilités connues des dépendances
+bandit==1.9.4                     # analyse statique de sécurité du code
+coverage==7.16.2                  # couverture des tests

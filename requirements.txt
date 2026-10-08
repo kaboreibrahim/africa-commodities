@@ -1,5 +1,11 @@
-Django>=5.2,<5.3          # version LTS (support jusqu'en avril 2028)
-django-environ>=0.11
-argon2-cffi>=23.1
-psycopg[binary]>=3.2      # PostgreSQL
-Pillow>=10.4              # logos des sociétés
+Django==5.2.18                    # version LTS (support jusqu'en avril 2028)
+django-environ==0.14.0
+argon2-cffi==25.1.0
+psycopg[binary]==3.3.6            # PostgreSQL
+Pillow==12.3.0                    # logos des sociétés (et vérification des images)
+
+# Étape 2 — sécurité
+django-allauth[mfa]==65.19.7      # connexion par e-mail, 2FA TOTP + codes de récupération
+django-axes==8.3.1                # blocage après 5 échecs de connexion
+django-simple-history==3.13.0     # historique des modifications
+django-csp==4.0                   # Content-Security-Policy

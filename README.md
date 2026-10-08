@@ -4,22 +4,24 @@ Application Django monolithique de suivi des marges des sociétés du groupe
 (OOA, ANL, OTL, ALON Properties, Mon Livreur Pro) et de la remontée vers Africa Commodities.
 
 **Étape 1 livrée : socle de données, règle de répartition, tests, administration.**
+**Étape 2 livrée : rôles, accès par société, 2FA, anti-bruteforce, CSP, historique et journal de sécurité.**
 
 ## Installation (développement)
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate          # Windows : .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt   # requirements.txt seul en production
 cp .env.example .env               # puis mettre une vraie DJANGO_SECRET_KEY
 python manage.py migrate           # crée les 5 sociétés + la règle 25 / 60 / 1-1-1
-python manage.py createsuperuser
+python manage.py creer_utilisateur --email moi@exemple.ci --nom Nom --prenom Prénom --role-global admin_groupe
 python manage.py runserver
 ```
 
-Administration : http://127.0.0.1:8000/gestion-interne/ (URL réglable via `DJANGO_ADMIN_URL`).
+Connexion : http://127.0.0.1:8000/compte/login/ (par e-mail). Administration :
+http://127.0.0.1:8000/gestion-interne/ (URL réglable via `DJANGO_ADMIN_URL`, admin groupe uniquement).
 
-Tests : `python manage.py test` (29 tests, validés sur SQLite et PostgreSQL 16).
+Tests : `python manage.py test` (128 tests, validés sur SQLite et PostgreSQL).
 
 ## Organisation
 
@@ -27,10 +29,10 @@ Tests : `python manage.py test` (29 tests, validés sur SQLite et PostgreSQL 16)
 |---|---|
 | `config/` | réglages séparés `base` / `dev` / `prod`, secrets dans `.env` |
 | `core/` | mixins communs : horodatage, suppression douce (restaurable) |
-| `comptes/` | utilisateur personnalisé (rôles et 2FA à l'étape 2) |
+| `comptes/` | utilisateur, rôles et affectations, **contrôle d'accès (`acces.py`)**, 2FA, journal de sécurité |
 | `societes/` | `Societe` (libellés, champ spécifique, couleurs), `Client`, `ObjectifMensuel` |
 | `repartition/` | `RegleRepartition` versionnée + `services.calculer_repartition` |
-| `operations/` | `Ligne` (dossier / opération / lot de livraisons) + `selectors` (totaux) |
+| `operations/` | `Ligne` (dossier / opération / lot de livraisons) + `selectors` (totaux) + `services` (écritures) |
 
 ## Règles métier codées
 
@@ -54,9 +56,91 @@ Tests : `python manage.py test` (29 tests, validés sur SQLite et PostgreSQL 16)
   en 2 requêtes, synthèse du groupe en 1 requête + 1 par société.
 - Index `(societe, date)` pour les filtres mensuels.
 
+## Sécurité
+
+### Matrice des droits
+
+| Action | Admin groupe | Direction | Responsable (sa société) | Saisie (sa société) | Lecture (sa société) |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Voir lignes, totaux, tableaux de bord | ✅ toutes | ✅ toutes | ✅ | ✅ | ✅ |
+| Voir la vue Groupe consolidée | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Ajouter une ligne | ✅ | ❌ | ✅ | ✅ | ❌ |
+| Modifier une ligne | ✅ | ❌ | ✅ toutes | ✅ ses lignes, mois en cours et mois précédent | ❌ |
+| Supprimer (douce) / restaurer une ligne | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Gérer clients et objectifs mensuels | ✅ | ❌ | ✅ | ❌ | ❌ |
+| Règle de répartition, sociétés, utilisateurs, affectations | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Accès à l'admin Django | ✅ | ❌ | ❌ | ❌ | ❌ |
+
+- Les règles sont appliquées **à un seul endroit** : `comptes/acces.py`. Les services d'écriture
+  (`operations/services.py`, `societes/services.py`), les mixins de vues (`comptes/mixins.py`) et
+  l'admin s'appuient dessus.
+- Hors périmètre : **404** dans les vues (on ne révèle pas l'existence d'une société),
+  **`PermissionDenied`** dans les services. Chaque refus est inscrit au journal de sécurité.
+- Un compte inactif, une affectation inactive ou une société inactive ne donnent aucun droit.
+- Fenêtre de modification du rôle Saisie : `SAISIE_FENETRE_MODIFICATION_MOIS` (1 par défaut).
+
+### Créer un utilisateur
+
+Les comptes sont créés par l'admin groupe : il n'y a pas d'inscription publique.
+
+```bash
+python manage.py creer_utilisateur --email awa@exemple.ci --nom Koné --prenom Awa     --societe ooa:responsable --societe anl:lecture
+python manage.py creer_utilisateur --email dg@exemple.ci --nom Diallo --prenom Moussa --role-global direction
+```
+
+Rôles par société : `responsable`, `saisie`, `lecture`. Rôles groupe : `admin_groupe`, `direction`.
+Le mot de passe provisoire est affiché **une seule fois**. Il faut le transmettre par un canal sûr.
+Son changement est imposé à la première connexion. On peut aussi créer un compte dans l'admin
+(Utilisateurs), puis ajouter ses affectations en bas de la fiche.
+
+### Double authentification (2FA)
+
+- **Obligatoire** pour l'admin groupe et les responsables (`MFA_ROLES_OBLIGATOIRES`) : tant qu'elle
+  n'est pas activée, toutes les pages redirigent vers son activation. Elle est facultative pour les autres rôles.
+- Activation : *Double authentification* (`/compte/2fa/`). Il faut scanner le QR code avec une application
+  (Google Authenticator, Microsoft Authenticator, FreeOTP…), saisir le code, puis **conserver les codes de
+  récupération**.
+- Téléphone perdu : l'admin groupe supprime l'authentificateur dans l'admin (MFA). Voir `SECURITE.md`.
+
+### Connexion, blocage et sessions
+
+- Connexion par e-mail. Après **5 échecs** pour un même couple e-mail + IP, la connexion est bloquée
+  **30 minutes**, même avec le bon mot de passe.
+- Débloquer un compte : `python manage.py axes_reset_username <email en minuscules>`
+  (ou `axes_reset` pour tout débloquer).
+- Les sessions expirent après **2 h d'inactivité** et à la fermeture du navigateur.
+
+### Journal de sécurité et historique
+
+- Admin → **Journal de sécurité** (lecture seule) : connexions, échecs, blocages, 2FA activée ou désactivée,
+  mot de passe changé, rôles modifiés, accès refusés, avec la date, l'IP et le navigateur. Les entrées
+  sont filtrables par événement, par date et par utilisateur. On n'y enregistre jamais de mot de passe ni de code.
+- Purge : `python manage.py purger_journal --jours 365`.
+- **Historique** (bouton « Historique » dans l'admin) : chaque modification des lignes, clients, objectifs,
+  règles, sociétés, affectations et utilisateurs, avec son auteur. Le mot de passe n'est jamais historisé.
+  La restauration d'une ancienne version depuis l'admin est désactivée, car elle contournerait les contrôles.
+
+### En-têtes HTTP
+
+CSP stricte (`'self'` uniquement, sans `unsafe-inline` ni `unsafe-eval`, aucun CDN), `X-Frame-Options: DENY`,
+`X-Content-Type-Options`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`, `Permissions-Policy`.
+En production, HTTPS est imposé (HSTS) et les cookies sont sécurisés. L'application refuse de démarrer
+si la clé secrète est trop courte, si la base est SQLite ou si `ALLOWED_HOSTS` est vide.
+
+### Commandes de contrôle
+
+```bash
+pip install -r requirements-dev.txt
+pip-audit -r requirements.txt                                   # vulnérabilités connues
+bandit -r . -x ./.venv,./*/tests,./*/migrations -ll             # analyse statique
+coverage run manage.py test && coverage report                  # tests + couverture
+python manage.py check --deploy --settings=config.settings.prod # configuration de production
+```
+
+En cas de compte compromis : suivre `SECURITE.md`.
+
 ## Étapes suivantes
 
-2. Sécurité : rôles, accès par société, 2FA, anti-bruteforce, CSP, journal d'audit.
 3. Interface : saisie HTMX, tableaux de bord, graphiques, confettis.
 4. Exports Excel / PDF + import des sauvegardes `.json` du fichier HTML.
 5. Déploiement : Docker Compose (Nginx, Gunicorn, PostgreSQL, Redis), HTTPS, sauvegardes.
