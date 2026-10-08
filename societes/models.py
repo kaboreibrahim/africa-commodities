@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
@@ -180,6 +181,47 @@ class ObjectifMensuel(TimestampMixin, models.Model):
 
     def __str__(self):
         return f"{self.societe.code} – {self.mois:%m/%Y}"
+
+    def save(self, *args, **kwargs):
+        self.mois = premier_du_mois(self.mois)
+        super().save(*args, **kwargs)
+
+
+class DepenseMensuelleQuerySet(FiltreSocieteMixin, models.QuerySet):
+    pass
+
+
+class DepenseMensuelle(TimestampMixin, models.Model):
+    """
+    Dépenses réelles d'une société pour un mois (montant global : loyer, salaires, carburant…).
+
+    Contrairement à l'objectif, il n'y a PAS de report d'un mois sur l'autre : les dépenses sont
+    un constat, pas une cible. Un mois sans saisie a des dépenses nulles (« dépenses non saisies »).
+    """
+
+    societe = models.ForeignKey(Societe, on_delete=models.CASCADE, related_name="depenses", verbose_name="société")
+    mois = models.DateField("mois", help_text="Toujours enregistré au 1er du mois.")
+    montant = models.DecimalField("dépenses du mois (FCFA)", max_digits=16, decimal_places=0,
+                                  validators=[MinValueValidator(0)])
+    note = models.CharField("note", max_length=255, blank=True)
+    saisi_par = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+                                  editable=False, related_name="depenses_saisies", verbose_name="saisi par")
+
+    objects = DepenseMensuelleQuerySet.as_manager()
+    history = HistoricalRecords()
+
+    class Meta:
+        ordering = ["-mois"]
+        verbose_name = "dépenses mensuelles"
+        verbose_name_plural = "dépenses mensuelles"
+        constraints = [
+            models.UniqueConstraint(fields=["societe", "mois"], name="depense_unique_par_mois",
+                                    violation_error_message="Les dépenses de ce mois sont déjà saisies pour cette société."),
+            models.CheckConstraint(condition=models.Q(montant__gte=0), name="depense_positive"),
+        ]
+
+    def __str__(self):
+        return f"{self.societe.code} – dépenses {self.mois:%m/%Y}"
 
     def save(self, *args, **kwargs):
         self.mois = premier_du_mois(self.mois)

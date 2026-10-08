@@ -4,7 +4,7 @@ from simple_history.admin import SimpleHistoryAdmin
 from comptes.admin import AffectationSocieteInline
 
 from . import services
-from .models import Client, ObjectifMensuel, Societe
+from .models import Client, DepenseMensuelle, ObjectifMensuel, Societe
 
 
 class ObjectifInline(admin.TabularInline):
@@ -21,12 +21,26 @@ class ObjectifInline(admin.TabularInline):
         return False
 
 
+class DepenseMensuelleInline(admin.TabularInline):
+    """Lecture seule : les dépenses se saisissent dans « Dépenses mensuelles » ou le tableau de bord."""
+
+    model = DepenseMensuelle
+    extra = 0
+    fields = ("mois", "montant", "note", "saisi_par")
+    readonly_fields = fields
+    can_delete = False
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Societe)
 class SocieteAdmin(SimpleHistoryAdmin):
     list_display = ("code", "nom", "libelle_ligne", "unite", "marge_defaut", "objectif_defaut", "actif", "ordre")
     list_editable = ("ordre", "actif")
     search_fields = ("code", "nom")
-    inlines = [ObjectifInline, AffectationSocieteInline]
+    inlines = [ObjectifInline, DepenseMensuelleInline, AffectationSocieteInline]
     fieldsets = (
         (None, {"fields": ("code", "nom", "actif", "ordre", "logo")}),
         ("Libellés de l'activité", {"fields": ("libelle_ligne", "libelle_ligne_pluriel", "libelle_reference",
@@ -89,3 +103,23 @@ class ObjectifMensuelAdmin(SimpleHistoryAdmin):
     def delete_queryset(self, request, queryset):
         for objectif in queryset:
             services.supprimer_objectif(request.user, objectif)
+
+
+@admin.register(DepenseMensuelle)
+class DepenseMensuelleAdmin(SimpleHistoryAdmin):
+    list_display = ("societe", "mois", "montant", "note", "saisi_par")
+    list_filter = ("societe", ("mois", admin.DateFieldListFilter))
+    date_hierarchy = "mois"
+    readonly_fields = ("saisi_par", "cree_le", "modifie_le")
+    list_select_related = ("societe", "saisi_par")
+
+    def get_readonly_fields(self, request, obj=None):
+        # Une saisie existante ne change ni de société ni de mois : on en crée une autre.
+        return self.readonly_fields + (("societe", "mois") if obj else ())
+
+    def save_model(self, request, obj, form, change):
+        obj.pk = services.definir_depenses(request.user, obj.societe, obj.mois, obj.montant, obj.note).pk
+        obj.refresh_from_db()
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser

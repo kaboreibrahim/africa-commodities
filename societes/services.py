@@ -1,11 +1,11 @@
 """
-Écritures sur les clients et les objectifs mensuels d'une société.
+Écritures sur les clients, les objectifs et les dépenses mensuels d'une société.
 Chaque fonction vérifie le droit (`comptes.acces`), valide puis enregistre.
 Un refus lève `PermissionDenied` et il est journalisé.
 """
 from comptes import acces
 
-from .models import Client, ObjectifMensuel, premier_du_mois
+from .models import Client, DepenseMensuelle, ObjectifMensuel, premier_du_mois
 
 CHAMPS_CLIENT = frozenset({"nom", "telephone", "email"})
 
@@ -68,3 +68,21 @@ def supprimer_objectif(user, objectif: ObjectifMensuel) -> None:
     _verifier_droit(user, objectif.societe_id, "supprimer_objectif", objectif=objectif.pk)
     objectif._history_user = user
     objectif.delete()
+
+
+def definir_depenses(user, societe, mois, montant, note="") -> DepenseMensuelle:
+    """
+    Crée ou met à jour les dépenses réelles du mois (montant global, 1er du mois).
+    Mêmes droits que les objectifs : Responsable de la société ou Admin groupe.
+    """
+    _verifier_droit(user, societe, "definir_depenses", mois=mois)
+    mois = premier_du_mois(mois)
+    depense = (DepenseMensuelle.objects.filter(societe=societe, mois=mois).first()
+               or DepenseMensuelle(societe=societe, mois=mois))
+    depense.montant = montant
+    depense.note = note or ""
+    depense.saisi_par = user
+    depense._history_user = user
+    depense.full_clean()
+    depense.save()
+    return depense

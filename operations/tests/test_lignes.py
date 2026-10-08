@@ -97,7 +97,8 @@ class SelecteursTests(TestCase):
 
     def test_tableau_de_bord_mois(self):
         ObjectifMensuel.objects.create(societe=self.ooa, mois=date(2026, 10, 1), montant=2_000_000)
-        with self.assertNumQueries(2):
+        # 4 requêtes : totaux + objectif (étape 1) + dépenses + règle du mois (couverture des charges).
+        with self.assertNumQueries(4):
             t = tableau_de_bord_mois(self.ooa, date(2026, 10, 7))
         self.assertEqual(t["marge"], 2_700_000)
         self.assertEqual(t["quantite"], 25)
