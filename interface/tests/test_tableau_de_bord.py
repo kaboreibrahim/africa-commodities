@@ -66,7 +66,7 @@ class TableauDeBordVueTests(JeuInterfaceMixin, TestCase):
         self.connecter(self.lecture_ooa)
         reponse = self.client.get(self.url())
         self.assertEqual(reponse.status_code, 200)
-        for texte in ("Marge de ", "Conteneurs du mois", "Charges (25", "Africa Commodities", "Risques + Provision",
+        for texte in ("Marge de ", "Conteneurs du mois", "Couverture des charges (25", "Africa Commodities", "Risques + Provision",
                       "Comptes OOA (disponible)", "Voir les données", "≈ 8 conteneur(s) restant(s)"):
             self.assertContains(reponse, texte)
         donnees = json.loads(reponse.context["graphiques"] and json.dumps(reponse.context["graphiques"]))

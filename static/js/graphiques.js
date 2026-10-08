@@ -119,6 +119,41 @@
         })
       };
     },
+    "charges-depenses": function (d) {
+      var c = d.chargesDepenses;
+      return {
+        type: "bar",
+        data: {
+          labels: c.etiquettes,
+          datasets: [
+            { label: "Part charges", data: c.parts, backgroundColor: variable("--c-charges", "#2F6FB0"), borderRadius: 3 },
+            { label: "Dépenses", data: c.depenses, backgroundColor: "#4B5563", borderRadius: 3 }
+          ]
+        },
+        options: Object.assign(optionsCommunes(), {
+          scales: {
+            y: axeMontants(),
+            x: { grid: { display: false }, ticks: {
+              color: function (t) { return t.index === c.selection ? variable("--navy") : variable("--gris"); },
+              font: function (t) { return { weight: t.index === c.selection ? "700" : "400" }; }
+            } }
+          },
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: {
+              title: function (items) { return items.length ? c.titres[items[0].dataIndex] : ""; },
+              label: function (t) { return t.dataset.label + " : " + fcfa(t.parsed.y); },
+              footer: function (items) {
+                var e = items.length ? c.ecarts[items[0].dataIndex] : null;
+                if (e === null || e === undefined) { return "Dépenses non saisies"; }
+                return e >= 0 ? "Excédent : " + fcfa(e) : "Reste à couvrir : " + fcfa(-e);
+              }
+            } }
+          }
+        })
+      };
+    },
     projets: function (d) {
       var p = d.projets;
       return {

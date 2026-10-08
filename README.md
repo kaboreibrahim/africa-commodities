@@ -49,6 +49,26 @@ Tests : `python manage.py test` (128 tests, validés sur SQLite et PostgreSQL).
   Location / Vente, date couverte par une règle.
 - **Suppression douce** des lignes et clients : rien n'est effacé définitivement par erreur.
 
+### Objectif et dépenses : deux indicateurs indépendants
+
+| | Objectif mensuel | Dépenses mensuelles |
+|---|---|---|
+| Nature | une **cible** de marge que la société se fixe | un **constat** : ce qui a réellement été dépensé (loyer, salaires, carburant…) |
+| Mois sans saisie | reprend l'objectif du dernier mois renseigné, sinon l'objectif par défaut | **aucun report** : dépenses = 0, statut « dépenses non saisies » |
+| Indicateur | progression de la marge vers l'objectif (confettis au franchissement) | **couverture des charges** (simple notification au franchissement) |
+
+**Couverture des charges.** La règle réserve déjà 25 % de la marge aux charges (`part_charges`).
+Chaque mois, on compare cette part aux dépenses saisies :
+
+- charges couvertes si part charges ≥ dépenses (et dépenses > 0) ; sinon **reste à couvrir** = dépenses − part ;
+- **taux de couverture** = part charges ÷ dépenses × 100 ;
+- **marge nécessaire** = dépenses ÷ (pct_charges ÷ 100), avec le pourcentage de la règle en vigueur le 1er du mois.
+  Exemple : 1 200 000 F de dépenses → 1 200 000 ÷ 25 % = **4 800 000 F de marge nécessaire** ; avec 2 000 000 F
+  de marge, il reste 2 800 000 F à faire, soit ≈ 28 conteneurs à 100 000 F.
+
+Le calcul est fait à un seul endroit : `operations/selectors.py → couverture_charges()`. Les dépenses se saisissent
+(Responsable, Admin groupe) dans le tableau de bord de la société ou dans l'admin (« Dépenses mensuelles »).
+
 ## Performances
 
 - Montants en `Decimal` (pas de `float`).

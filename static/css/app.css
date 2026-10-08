@@ -391,3 +391,21 @@ dialog.dialogue::backdrop { background: rgba(15, 26, 46, .45); }
   body { background: var(--blanc); }
   .carte { break-inside: avoid; }
 }
+
+/* ---------- Couverture des charges (dépenses mensuelles) ---------- */
+.parametres-mois { display: flex; gap: 8px 28px; flex-wrap: wrap; margin-bottom: 14px; }
+.parametres-mois .objectif-zone { margin-bottom: 0; }
+.kpi--charges { border-top-color: var(--c-charges); }
+progress.barre--charges::-webkit-progress-value { background: var(--c-charges); }
+progress.barre--charges::-moz-progress-bar { background: var(--c-charges); }
+progress.barre--charges { color: var(--c-charges); }
+.statut { font-weight: 600; }
+.statut--ok { color: var(--vert-ok); }
+.statut--alerte { color: var(--rouge); }
+.statut--neutre { color: var(--gris); font-weight: 400; font-style: italic; }
+.badge-statut {
+  display: inline-flex; align-items: center; gap: 6px; margin: 0 0 14px;
+  padding: 6px 12px; border-radius: 999px; font-weight: 600; font-size: 13px;
+}
+.badge-statut--ok { background: #E6F2E8; color: var(--vert-ok); border: 1px solid #B7D9BE; }
+.pastille--depenses { background: #4B5563; }

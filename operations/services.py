@@ -8,6 +8,7 @@ from django.db import transaction
 from comptes import acces
 
 from .models import Ligne
+from .selectors import objectif_atteint
 
 # Champs qu'un utilisateur peut renseigner ; la société, la répartition et la traçabilité sont exclues.
 CHAMPS_SAISIE = frozenset({"date", "reference", "projet", "client", "client_id", "extra", "quantite",
@@ -65,3 +66,18 @@ def restaurer_ligne(user, ligne: Ligne) -> None:
         acces.refuser(user, "restaurer_ligne", ligne=ligne.pk)
     ligne._history_user = user
     ligne.restaurer()
+
+
+def objectif_franchi(societe, mois, marge_avant, marge_apres) -> bool:
+    """L'enregistrement fait-il passer la société au-dessus de son objectif du mois ?"""
+    objectif = societe.objectif_pour(mois)
+    return not objectif_atteint(marge_avant, objectif) and objectif_atteint(marge_apres, objectif)
+
+
+def franchissements(etat_avant: dict, etat_apres: dict) -> set[str]:
+    """
+    Seuils franchis entre deux états du mois (voir selectors.etat_du_mois) :
+    « objectif_atteint » (confettis) et/ou « charges_couvertes » (simple notification).
+    Un seuil déjà franchi avant l'enregistrement ne compte pas : une seule notification par franchissement.
+    """
+    return {cle for cle in ("objectif_atteint", "charges_couvertes") if etat_apres[cle] and not etat_avant[cle]}

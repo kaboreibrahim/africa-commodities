@@ -1,6 +1,6 @@
 {% load format_fr %}
 <div id="tableau-de-bord" hx-get="{% url 'interface:tableau' societe.code %}"
-     hx-trigger="objectifModifie from:body, lignesModifiees from:body" hx-swap="outerHTML">
+     hx-trigger="objectifModifie from:body, depensesModifiees from:body, lignesModifiees from:body" hx-swap="outerHTML">
 
   {% if ind.objectif_atteint %}
     <div class="bandeau" role="status">
@@ -9,12 +9,27 @@
     </div>
   {% endif %}
 
-  <div class="objectif-zone" id="zone-objectif">
-    <span>Objectif de {{ mois|mois_long }} : <span class="objectif-zone__valeur">{{ ind.objectif|fcfa }}</span></span>
-    {% if peut_gerer %}
-      <a class="btn btn--secondaire btn--petit" href="{% url 'interface:objectif' societe.code %}"
-         hx-get="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">Modifier l'objectif</a>
-    {% endif %}
+  {% if ind.couverture.couvert %}
+    <p class="badge-statut badge-statut--ok" role="status"><span aria-hidden="true">✔</span> Charges du mois couvertes</p>
+  {% endif %}
+
+  <div class="parametres-mois">
+    <div class="objectif-zone" id="zone-objectif">
+      <span>Objectif de {{ mois|mois_long }} : <span class="objectif-zone__valeur">{{ ind.objectif|fcfa }}</span></span>
+      {% if peut_gerer %}
+        <a class="btn btn--secondaire btn--petit" href="{% url 'interface:objectif' societe.code %}"
+           hx-get="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">Modifier l'objectif</a>
+      {% endif %}
+    </div>
+    <div class="objectif-zone" id="zone-depenses">
+      <span>Dépenses du mois :
+        {% if ind.couverture.depenses_saisies %}<span class="objectif-zone__valeur">{{ ind.depenses|fcfa }}</span>
+        {% else %}<span class="statut statut--neutre">non saisies</span>{% endif %}</span>
+      {% if peut_gerer %}
+        <a class="btn btn--secondaire btn--petit" href="{% url 'interface:depenses' societe.code %}"
+           hx-get="{% url 'interface:depenses' societe.code %}" hx-target="#zone-depenses">{% if ind.couverture.depenses_saisies %}Modifier les dépenses{% else %}Saisir les dépenses{% endif %}</a>
+      {% endif %}
+    </div>
   </div>
 
   <section class="kpis" aria-label="Indicateurs de {{ mois|mois_long }}">
@@ -36,11 +51,25 @@
         <div class="kpi__s">≈ {{ ind.unites_restantes|nombre }} {{ societe.unite }}(s) restant(s)</div>
       {% endif %}
     </div>
-    <div class="kpi">
-      <div class="kpi__l">Charges ({% if ind.pct_charges is not None %}{{ ind.pct_charges|pct }}{% else %}{{ regle_pied.pct_charges|pct }}{% endif %} de la marge)</div>
-      <div class="kpi__v">{{ ind.charges|fcfa }}</div>
-      <div class="kpi__s">Part de la marge réservée aux charges</div>
+    {% with c=ind.couverture %}
+    <div class="kpi kpi--charges">
+      <div class="kpi__l">Couverture des charges ({% if ind.pct_charges is not None %}{{ ind.pct_charges|pct }}{% else %}{{ regle_pied.pct_charges|pct }}{% endif %} de la marge)</div>
+      <div class="kpi__v">{{ c.part_charges|fcfa }}</div>
+      {% if c.depenses_saisies %}
+        <div class="kpi__s">Dépenses : {{ c.depenses|fcfa }}</div>
+        <progress class="barre barre--charges" max="100" value="{% if c.taux > 100 %}100{% else %}{{ c.taux|floatformat:'0u' }}{% endif %}"
+                  aria-label="Taux de couverture des charges">{{ c.taux|pct }}</progress>
+        <div class="kpi__s">Taux de couverture : {{ c.taux|pct }}</div>
+        {% if c.couvert %}
+          <div class="kpi__s statut statut--ok"><span aria-hidden="true">✔</span> Charges couvertes — excédent {{ c.excedent|fcfa }}</div>
+        {% else %}
+          <div class="kpi__s statut statut--alerte"><span aria-hidden="true">⚠</span> Reste à couvrir {{ c.reste_a_couvrir|fcfa }}{% if c.unites_restantes %} — ≈ {{ c.unites_restantes|nombre }} {{ societe.unite }}(s){% endif %}</div>
+        {% endif %}
+      {% else %}
+        <div class="kpi__s statut statut--neutre">Dépenses non saisies</div>
+      {% endif %}
     </div>
+    {% endwith %}
     <div class="kpi kpi--ac">
       <div class="kpi__l">Africa Commodities</div>
       <div class="kpi__v texte-ac">{{ ind.africa_commodities|fcfa }}</div>
@@ -117,6 +146,30 @@
       </details>
     </section>
   </div>
+
+  <section class="carte">
+    <h2>Charges réservées comparées aux dépenses <small>— {{ mois|date:"Y" }}</small></h2>
+    <div class="graphique">
+      <canvas data-graphique="charges-depenses" data-source="donnees-graphiques" role="img"
+              aria-label="Barres groupées : part charges et dépenses réelles de chaque mois de {{ mois|date:"Y" }} (tableau des données ci-dessous)"></canvas>
+    </div>
+    <ul class="legende legende--horizontale">
+      <li><span class="pastille pastille--charges" aria-hidden="true"></span>Part charges réservée sur la marge</li>
+      <li><span class="pastille pastille--depenses" aria-hidden="true"></span>Dépenses réelles saisies</li>
+    </ul>
+    <details class="donnees">
+      <summary>Voir les données</summary>
+      <div class="cadre-tableau"><table class="tableau tableau--simple">
+        <caption class="visuellement-cache">Part charges et dépenses par mois en {{ mois|date:"Y" }}</caption>
+        <thead><tr><th scope="col">Mois</th><th scope="col" class="n">Part charges</th><th scope="col" class="n">Dépenses</th><th scope="col">Couverture</th></tr></thead>
+        <tbody>{% for m in donnees.annee %}{% with c=m.couverture %}
+          <tr><td>{% if m.selectionne %}<strong>{{ m.mois|mois_long }}</strong>{% else %}{{ m.mois|mois_long }}{% endif %}</td>
+            <td class="n">{{ m.part_charges|fcfa }}</td><td class="n">{% if c.depenses_saisies %}{{ m.depenses|fcfa }}{% else %}—{% endif %}</td>
+            <td>{% if not c.depenses_saisies %}dépenses non saisies{% elif c.couvert %}✔ {{ c.taux|pct }} (excédent {{ c.excedent|fcfa }}){% else %}⚠ {{ c.taux|pct }} (reste {{ c.reste_a_couvrir|fcfa }}){% endif %}</td></tr>
+        {% endwith %}{% endfor %}</tbody>
+      </table></div>
+    </details>
+  </section>
 
   <div class="graphiques">
     <section class="carte">

@@ -132,6 +132,12 @@
     });
   });
 
+  document.addEventListener("chargesCouvertes", function (evt) {
+    var d = evt.detail || {};
+    // Simple notification : les confettis restent réservés à l'objectif.
+    afficherToast("✔ Charges " + (d.societe || "") + " de " + (d.mois || "") + " couvertes", "success");
+  });
+
   /* ---------- Erreurs HTMX ---------- */
   document.addEventListener("htmx:responseError", function (evt) {
     var statut = evt.detail.xhr ? evt.detail.xhr.status : 0;

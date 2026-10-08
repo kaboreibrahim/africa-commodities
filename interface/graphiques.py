@@ -69,6 +69,16 @@ def donnees_tableau_de_bord(donnees: dict, societe) -> dict:
             "atteints": [m["objectif_atteint"] for m in donnees["annee"]],
             "selection": next((i for i, m in enumerate(donnees["annee"]) if m["selectionne"]), None),
         },
+        "chargesDepenses": {
+            "etiquettes": [mois_court(m["mois"]).capitalize() for m in donnees["annee"]],
+            "titres": [mois_long(m["mois"]) for m in donnees["annee"]],
+            "parts": [_entier(m["part_charges"]) for m in donnees["annee"]],
+            "depenses": [_entier(m["depenses"]) for m in donnees["annee"]],
+            # Écart déjà calculé par couverture_charges : positif = excédent, négatif = reste à couvrir.
+            "ecarts": [_entier(m["couverture"].excedent - m["couverture"].reste_a_couvrir)
+                       if m["couverture"].depenses_saisies else None for m in donnees["annee"]],
+            "selection": next((i for i, m in enumerate(donnees["annee"]) if m["selectionne"]), None),
+        },
         "projets": {
             "etiquettes": [p["projet"] for p in donnees["projets"]],
             "marges": [_entier(p["marge"]) for p in donnees["projets"]],

@@ -1,0 +1,23 @@
+{% load format_fr l10n %}
+<form class="formulaire-objectif" method="post" action="{% url 'interface:depenses' societe.code %}"
+      hx-post="{% url 'interface:depenses' societe.code %}" hx-target="#zone-depenses">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<ul class="erreurs-formulaire">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  <div class="champ">
+    <label for="id_depenses_montant">Dépenses de {{ mois|mois_long }} (FCFA)</label>
+    <input type="number" name="montant" id="id_depenses_montant" min="0" step="1000" inputmode="numeric"
+           value="{{ form.montant.value|default_if_none:''|unlocalize }}" required
+           aria-describedby="aide-depenses"{% if form.montant.errors %} aria-invalid="true"{% endif %}>
+    {% if form.montant.errors %}<ul class="erreur-champ">{% for e in form.montant.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <div class="champ">
+    <label for="id_depenses_note">Note (facultatif)</label>
+    <input type="text" name="note" id="id_depenses_note" maxlength="255" value="{{ form.note.value|default_if_none:'' }}"
+           placeholder="ex : loyer, salaires, carburant">
+    {% if form.note.errors %}<ul class="erreur-champ">{% for e in form.note.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <button type="submit">Enregistrer</button>
+  <a class="btn btn--secondaire" href="{% url 'interface:tableau' societe.code %}"
+     hx-get="{% url 'interface:tableau' societe.code %}" hx-target="#tableau-de-bord" hx-swap="outerHTML">Annuler</a>
+  <p class="aide" id="aide-depenses">{{ form.montant.help_text }}</p>
+</form>

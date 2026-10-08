@@ -11,13 +11,15 @@ from django.views.generic import FormView, TemplateView
 
 from comptes import acces
 from core.templatetags.format_fr import fcfa, mois_long
-from operations.selectors import tableau_de_bord_societe
-from societes.services import definir_objectif
+from operations.selectors import etat_du_mois, tableau_de_bord_societe
+from operations.services import franchissements
+from societes.models import DepenseMensuelle
+from societes.services import definir_depenses, definir_objectif
 
 from . import graphiques
 from .contexte import GestionSocieteMixin, InterfaceMixin, PageGroupeMixin, PageSocieteMixin
-from .forms import ObjectifForm
-from .htmx import declencher, toast
+from .forms import DepensesForm, ObjectifForm
+from .htmx import declencher, evenements_franchissement, toast
 from .theme import css_theme
 
 
@@ -111,6 +113,41 @@ class ObjectifView(GestionSocieteMixin, FormView):
             reponse = HttpResponse(status=204)
             return declencher(reponse, objectifModifie=True, toast=toast(message))
         messages.success(self.request, message)
+        return redirect("interface:tableau", code_societe=self.societe.code)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form), status=422)
+
+
+class DepensesView(GestionSocieteMixin, FormView):
+    """Saisir les dépenses réelles du mois (Responsable, Admin groupe) via le service `definir_depenses`."""
+
+    form_class = DepensesForm
+    section = "tableau"
+
+    def get_template_names(self):
+        return ["partials/depenses_form.html"] if self.est_htmx else ["interface/depenses.html"]
+
+    def get_initial(self):
+        depense = DepenseMensuelle.objects.filter(societe=self.societe, mois=self.mois).first()
+        return {"montant": depense.montant, "note": depense.note} if depense else {}
+
+    def form_valid(self, form):
+        avant = etat_du_mois(self.societe, self.mois)
+        try:
+            definir_depenses(self.request.user, self.societe, self.mois, form.cleaned_data["montant"],
+                             form.cleaned_data["note"])
+        except ValidationError as erreur:
+            form.add_error("montant", erreur.messages)
+            return self.form_invalid(form)
+        seuils = franchissements(avant, etat_du_mois(self.societe, self.mois))
+        message = f"Dépenses de {mois_long(self.mois)} enregistrées : {fcfa(form.cleaned_data['montant'])}."
+        if self.est_htmx:
+            reponse = declencher(HttpResponse(status=204), depensesModifiees=True, toast=toast(message))
+            return declencher(reponse, **evenements_franchissement(seuils, self.societe, self.mois))
+        messages.success(self.request, message)
+        if "charges_couvertes" in seuils:
+            messages.success(self.request, f"✔ Charges {self.societe.code.upper()} de {mois_long(self.mois)} couvertes")
         return redirect("interface:tableau", code_societe=self.societe.code)
 
     def form_invalid(self, form):

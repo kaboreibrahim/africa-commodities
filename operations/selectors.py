@@ -316,10 +316,20 @@ def tableau_de_bord_societe(societe: Societe, mois: date) -> dict:
     for m in liste_mois:
         ligne = par_mois.get(m, {})
         marge_m = ligne.get("marge") or Decimal("0")
+        part_m, depenses_m = ligne.get("charges") or Decimal("0"), depenses.get(m, Decimal("0"))
         annee.append({"mois": m, "marge": marge_m, "objectif": objectifs[(societe.pk, m)],
                       "objectif_atteint": objectif_atteint(marge_m, objectifs[(societe.pk, m)]),
-                      "part_charges": ligne.get("charges") or Decimal("0"),
-                      "depenses": depenses.get(m, Decimal("0")), "selectionne": m == mois})
+                      "part_charges": part_m, "depenses": depenses_m, "selectionne": m == mois,
+                      # écart (reste / excédent) seulement : la règle du mois affiché suffit, aucune requête en plus
+                      "couverture": couverture_charges(societe, m, marge=marge_m, part_charges=part_m,
+                                                       quantite=ligne.get("quantite") or 0, depenses=depenses_m,
+                                                       pct_charges=pct_charges)})
 
     projets = regrouper_projets(marges_par_projet(societe, mois, fin_du_mois(mois)))
     return {"indicateurs": ind, "annee": annee, "projets": projets}
+
+
+def etat_du_mois(societe: Societe, mois: date) -> dict:
+    """État d'une société pour un mois : objectif atteint ? charges couvertes ? (4 requêtes)."""
+    t = tableau_de_bord_mois(societe, mois)
+    return {"marge": t["marge"], "objectif_atteint": t["objectif_atteint"], "charges_couvertes": t["couverture"].couvert}
