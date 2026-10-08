@@ -8,7 +8,7 @@ class ComptesConfig(AppConfig):
     verbose_name = "comptes et sécurité"
 
     def ready(self):
-        from . import signals  # noqa: F401  (enregistre les récepteurs)
+        from . import checks, signals  # noqa: F401  (enregistre les récepteurs et les vérifications)
 
 
 class AdminGroupeConfig(admin_apps.AdminConfig):

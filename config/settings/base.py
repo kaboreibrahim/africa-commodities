@@ -6,6 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 
 import environ
+from csp.constants import NONE, SELF
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -36,10 +37,13 @@ INSTALLED_APPS = [
     "allauth.mfa",
     "axes",
     "simple_history",
+    "csp",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "csp.middleware.CSPMiddleware",
+    "core.middleware.EnTetesSecuriteMiddleware",  # Permissions-Policy
     "comptes.journal.JournalSecuriteMiddleware",  # écrit le journal APRÈS la vue (hors transaction)
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -118,6 +122,9 @@ AXES_USERNAME_FORM_FIELD = "login"  # nom du champ dans le formulaire allauth
 # allauth transmet l'identifiant sous la clé « email » : on le lit nous-mêmes.
 AXES_USERNAME_CALLABLE = "comptes.axes.identifiant_tentative"
 AXES_LOCKOUT_TEMPLATE = "comptes/compte_bloque.html"
+# IP du client (axes et journal de sécurité). Derrière Nginx, voir NB_PROXYS_DE_CONFIANCE (prod.py).
+AXES_CLIENT_IP_CALLABLE = "comptes.axes.ip_client"
+NB_PROXYS_DE_CONFIANCE = env.int("DJANGO_NB_PROXYS_DE_CONFIANCE", default=0)
 
 # --- Sessions : expiration après 2 h d'inactivité ---
 SESSION_COOKIE_AGE = 60 * 60 * 2
@@ -147,6 +154,34 @@ USE_I18N = True
 USE_TZ = True
 USE_THOUSAND_SEPARATOR = True
 
+# --- En-têtes de sécurité HTTP (valables aussi en dev) ---
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+# Content Security Policy (django-csp 4) : aucune ressource externe, aucun script ni style inline.
+# HTMX et Chart.js seront servis depuis static/vendor/ (étape 3). Jamais d'« unsafe-inline » ni
+# d'« unsafe-eval » : si un gabarit a besoin d'un script inline, utiliser un nonce (csp.constants.NONCE).
+CONTENT_SECURITY_POLICY = {
+    "DIRECTIVES": {
+        "default-src": [SELF],
+        "script-src": [SELF],
+        "style-src": [SELF],
+        "img-src": [SELF, "data:"],
+        "font-src": [SELF],
+        "connect-src": [SELF],
+        "object-src": [NONE],
+        "base-uri": [SELF],
+        "form-action": [SELF],
+        "frame-ancestors": [NONE],
+    }
+}
+
+# Taille maximale des envois (formulaires et fichiers gardés en mémoire).
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
+
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
@@ -164,6 +199,8 @@ LOGGING = {
     "root": {"handlers": ["console"], "level": "INFO"},
     "loggers": {
         "axes": {"level": "WARNING"},  # les événements utiles vont dans le journal de sécurité
+        "django.security": {"handlers": ["console"], "level": "WARNING", "propagate": False},
+        "securite": {"handlers": ["console"], "level": "WARNING", "propagate": False},
     },
 }
 

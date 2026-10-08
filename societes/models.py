@@ -7,6 +7,7 @@ from django.db.models.functions import Lower
 from simple_history.models import HistoricalRecords
 
 from core.models import ActifQuerySet, SuppressionDouceMixin, TimestampMixin
+from core.validators import taille_max_2_mo, valider_extension_image, valider_image_reelle
 
 couleur_hex = RegexValidator(r"^#[0-9A-Fa-f]{6}$", "Couleur au format #RRGGBB.")
 
@@ -75,7 +76,8 @@ class Societe(TimestampMixin, models.Model):
     couleur_foncee = models.CharField(max_length=7, default="#0E5A1E", validators=[couleur_hex])
     couleur_accent = models.CharField(max_length=7, default="#E8720C", validators=[couleur_hex])
     couleur_serie = models.CharField("couleur dans les graphiques groupe", max_length=7, default="#1B7A2E", validators=[couleur_hex])
-    logo = models.ImageField(upload_to="logos/", blank=True)
+    logo = models.ImageField(upload_to="logos/", blank=True, help_text="PNG, JPEG ou WEBP, 2 Mo maximum.",
+                             validators=[valider_extension_image, taille_max_2_mo, valider_image_reelle])
 
     objects = SocieteQuerySet.as_manager()
     history = HistoricalRecords()
