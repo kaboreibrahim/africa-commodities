@@ -5,12 +5,12 @@ from django.db import models, transaction
 from core.models import ActifQuerySet, SuppressionDouceMixin, TimestampMixin
 from repartition.models import RegleRepartition
 from repartition.services import calculer_repartition
-from societes.models import Client, Societe
+from societes.models import Client, FiltreSocieteMixin, Societe
 
 MONTANT = dict(max_digits=16, decimal_places=0)
 
 
-class LigneQuerySet(ActifQuerySet):
+class LigneQuerySet(FiltreSocieteMixin, ActifQuerySet):
     def du_mois(self, mois):
         return self.filter(date__year=mois.year, date__month=mois.month)
 
@@ -55,6 +55,8 @@ class Ligne(TimestampMixin, SuppressionDouceMixin, models.Model):
 
     cree_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
                                  editable=False, related_name="lignes_creees")
+    modifie_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, blank=True,
+                                    editable=False, related_name="lignes_modifiees", verbose_name="modifié par")
 
     objects = LigneManager()
     tous = LigneQuerySet.as_manager()

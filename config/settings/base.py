@@ -16,7 +16,7 @@ DEBUG = env.bool("DJANGO_DEBUG", default=False)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
+    "comptes.apps.AdminGroupeConfig",  # admin réservé à l'admin groupe
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -68,6 +68,11 @@ DATABASES["default"]["ATOMIC_REQUESTS"] = True  # chaque requête = une transact
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
 
 AUTH_USER_MODEL = "comptes.Utilisateur"
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "comptes.backends.PermissionsAdminGroupe",  # permissions de l'admin pour l'admin groupe
+]
 
 # Rôle « Saisie » : modification de ses propres lignes du mois en cours et des N mois précédents.
 SAISIE_FENETRE_MODIFICATION_MOIS = env.int("SAISIE_FENETRE_MODIFICATION_MOIS", default=1)

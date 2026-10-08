@@ -5,13 +5,29 @@ from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models.functions import Lower
 
-from core.models import SuppressionDouceMixin, TimestampMixin
+from core.models import ActifQuerySet, SuppressionDouceMixin, TimestampMixin
 
 couleur_hex = RegexValidator(r"^#[0-9A-Fa-f]{6}$", "Couleur au format #RRGGBB.")
 
 
 def premier_du_mois(d: date) -> date:
     return d.replace(day=1)
+
+
+class FiltreSocieteMixin:
+    """Ajoute `pour_utilisateur(user)` aux querysets de modèles rattachés à une société."""
+
+    def pour_utilisateur(self, user):
+        from comptes.acces import societes_accessibles  # import tardif : comptes dépend de societes
+
+        return self.filter(societe__in=societes_accessibles(user))
+
+
+class SocieteQuerySet(models.QuerySet):
+    def pour_utilisateur(self, user):
+        from comptes.acces import societes_accessibles
+
+        return self.filter(pk__in=societes_accessibles(user).values("pk"))
 
 
 class Societe(TimestampMixin, models.Model):
@@ -60,6 +76,8 @@ class Societe(TimestampMixin, models.Model):
     couleur_serie = models.CharField("couleur dans les graphiques groupe", max_length=7, default="#1B7A2E", validators=[couleur_hex])
     logo = models.ImageField(upload_to="logos/", blank=True)
 
+    objects = SocieteQuerySet.as_manager()
+
     class Meta:
         ordering = ["ordre", "nom"]
         verbose_name = "société"
@@ -88,6 +106,17 @@ class Societe(TimestampMixin, models.Model):
         return obj if obj is not None else self.objectif_defaut
 
 
+class ClientQuerySet(FiltreSocieteMixin, ActifQuerySet):
+    pass
+
+
+class ClientManager(models.Manager.from_queryset(ClientQuerySet)):
+    """Manager par défaut : clients actifs uniquement (suppression douce)."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(supprime_le__isnull=True)
+
+
 class Client(TimestampMixin, SuppressionDouceMixin, models.Model):
     """Client rattaché à une société (chaque société a sa propre liste)."""
 
@@ -95,6 +124,9 @@ class Client(TimestampMixin, SuppressionDouceMixin, models.Model):
     nom = models.CharField("nom", max_length=150)
     telephone = models.CharField("téléphone", max_length=30, blank=True)
     email = models.EmailField("e-mail", blank=True)
+
+    objects = ClientManager()
+    tous = ClientQuerySet.as_manager()
 
     class Meta:
         ordering = ["nom"]
@@ -118,12 +150,18 @@ class Client(TimestampMixin, SuppressionDouceMixin, models.Model):
         super().save(*args, **kwargs)
 
 
+class ObjectifMensuelQuerySet(FiltreSocieteMixin, models.QuerySet):
+    pass
+
+
 class ObjectifMensuel(TimestampMixin, models.Model):
     """Objectif de marge fixé pour une société et un mois donnés."""
 
     societe = models.ForeignKey(Societe, on_delete=models.CASCADE, related_name="objectifs")
     mois = models.DateField("mois", help_text="Toujours enregistré au 1er du mois.")
     montant = models.DecimalField("objectif (FCFA)", max_digits=16, decimal_places=0, validators=[MinValueValidator(0)])
+
+    objects = ObjectifMensuelQuerySet.as_manager()
 
     class Meta:
         ordering = ["-mois"]
