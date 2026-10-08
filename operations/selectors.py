@@ -5,10 +5,10 @@ Lectures agrégées (tableaux de bord). Tous les totaux sont calculés PAR LA BA
 from datetime import date
 from decimal import Decimal
 
-from django.db.models import Count, DecimalField, Sum, Value
+from django.db.models import Count, DecimalField, F, OuterRef, Subquery, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
 
-from societes.models import Societe, premier_du_mois
+from societes.models import ObjectifMensuel, Societe, premier_du_mois
 
 from .models import Ligne
 
@@ -85,3 +85,24 @@ def synthese_groupe(mois: date) -> list[dict]:
                  objectif_atteint=bool(objectif) and t["marge"] >= objectif and t["marge"] > 0)
         resultat.append(t)
     return resultat
+
+
+def objectif_atteint(marge, objectif) -> bool:
+    """Règle unique : objectif non nul, marge positive et au moins égale à l'objectif."""
+    return bool(objectif) and marge > 0 and marge >= objectif
+
+
+def avec_etat_du_mois(societes, mois: date):
+    """
+    Ajoute à un queryset de sociétés `marge_mois` et `objectif_mois` (1 seule requête, sous-requêtes).
+    Utilisé pour les onglets (✔ quand l'objectif du mois est atteint).
+    """
+    mois = premier_du_mois(mois)
+    marge = (Ligne.objects.filter(societe=OuterRef("pk")).du_mois(mois).order_by()
+             .values("societe").annotate(total=Sum("marge_totale")).values("total"))
+    objectif = (ObjectifMensuel.objects.filter(societe=OuterRef("pk"), mois__lte=mois)
+                .order_by("-mois").values("montant")[:1])
+    return societes.annotate(
+        marge_mois=Coalesce(Subquery(marge, output_field=ZERO.output_field), ZERO),
+        objectif_mois=Coalesce(Subquery(objectif, output_field=ZERO.output_field), F("objectif_defaut")),
+    )

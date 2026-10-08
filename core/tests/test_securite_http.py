@@ -1,5 +1,6 @@
 import io
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -45,8 +46,13 @@ class EnTetesTests(TestCase):
         for gabarit in (RACINE / "templates").rglob("*.html"):
             contenu = gabarit.read_text(encoding="utf-8")
             with self.subTest(gabarit=gabarit.name):
-                self.assertNotIn("<script", contenu)
+                # Seuls les scripts externes (src=) ou de données (application/json) sont permis.
+                for balise in re.findall(r"<script\b[^>]*>", contenu):
+                    self.assertTrue("src=" in balise or "application/json" in balise, balise)
                 self.assertNotIn("style=", contenu)
+                self.assertNotIn("<style", contenu)
+                self.assertNotRegex(contenu, r"\son[a-z]+=")
+                self.assertNotIn("hx-on", contenu)
                 self.assertNotIn("//cdn", contenu)
                 self.assertNotIn("https://", contenu)
 

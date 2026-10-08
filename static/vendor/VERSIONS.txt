@@ -1,0 +1,14 @@
+Bibliothèques JavaScript hébergées localement (aucun CDN : compatibilité avec la CSP « 'self' »).
+Ne pas modifier ces fichiers ; pour une mise à jour, retélécharger depuis le registre npm et vérifier l'empreinte.
+
+htmx.min.js
+  Paquet npm  : htmx.org 2.0.11 (fichier dist/htmx.min.js)
+  Téléchargé  : 2026-10-08, depuis https://registry.npmjs.org/htmx.org/-/htmx.org-2.0.11.tgz
+  Intégrité   : sha512-Thx/WtpeOQqSrqBCw/A1cwGJGg4UrVa3+sW0GmrM3p4gJgO89ecH4qtbnyzDDWFvBTqjnIMCgELTNt636dtamA== (archive npm, vérifiée)
+  Licence     : 0BSD (htmx.LICENSE.txt)
+
+chart.umd.min.js (+ chart.umd.min.js.map)
+  Paquet npm  : chart.js 4.5.1 (fichiers dist/chart.umd.min.js et .map)
+  Téléchargé  : 2026-10-08, depuis https://registry.npmjs.org/chart.js/-/chart.js-4.5.1.tgz
+  Intégrité   : sha512-GIjfiT9dbmHRiYi6Nl2yFCq7kkwdkp1W/lp2J99rX0yo9tgJGn3lKQATztIjb5tVtevcBtIdICNWqlq5+E8/Pw== (archive npm, vérifiée)
+  Licence     : MIT (chart.LICENSE.md)

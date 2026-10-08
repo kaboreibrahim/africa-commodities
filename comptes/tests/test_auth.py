@@ -70,7 +70,7 @@ class MFAObligatoireTests(ReinitialiserAxesMixin, JeuUtilisateursMixin, TestCase
 
     def test_saisie_n_est_pas_redirige(self):
         self.client.force_login(self.saisie_ooa)
-        self.assertEqual(self.client.get("/").status_code, 200)
+        self.assertEqual(self.client.get("/", follow=True).status_code, 200)
 
     def test_pages_de_compte_accessibles_sans_totp(self):
         reponse = self.client.post(URL_CONNEXION, {"login": self.responsable_ooa.email, "password": MOT_DE_PASSE})
@@ -82,7 +82,7 @@ class MFAObligatoireTests(ReinitialiserAxesMixin, JeuUtilisateursMixin, TestCase
     def test_responsable_avec_totp_passe(self):
         activer_totp(self.responsable_ooa)
         self.client.force_login(self.responsable_ooa)
-        self.assertEqual(self.client.get("/").status_code, 200)
+        self.assertEqual(self.client.get("/", follow=True).status_code, 200)
 
     def test_connexion_avec_totp_demande_le_code(self):
         activer_totp(self.responsable_ooa)

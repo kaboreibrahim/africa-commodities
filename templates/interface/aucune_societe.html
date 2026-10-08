@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block titre %}Accueil{% endblock %}
+{% block contenu %}
+  <section class="carte">
+    <h2>Bienvenue {{ user.first_name|default:user.email }}</h2>
+    <p>Aucune société ne vous est encore attribuée. Demandez à l'administrateur du groupe de vous donner un accès.</p>
+  </section>
+{% endblock %}

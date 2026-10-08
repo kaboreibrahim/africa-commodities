@@ -17,7 +17,7 @@
     {% block content %}{% endblock %}
     {% if user.is_authenticated %}
       <nav class="menu">
-        <a href="{% url 'accueil' %}">Accueil</a>
+        <a href="{% url 'interface:accueil' %}">Accueil</a>
         <a href="{% url 'mfa_index' %}">Double authentification</a>
         <a href="{% url 'account_change_password' %}">Mot de passe</a>
         <a href="{% url 'account_logout' %}">Se déconnecter</a>

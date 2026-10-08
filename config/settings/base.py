@@ -14,6 +14,7 @@ env = environ.Env()
 environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("DJANGO_SECRET_KEY")
+VERSION_APPLICATION = "0.3.0"  # affichée en pied de page
 DEBUG = env.bool("DJANGO_DEBUG", default=False)
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "societes",
     "repartition",
     "operations",
+    "interface",
     # Sécurité
     "allauth",
     "allauth.account",

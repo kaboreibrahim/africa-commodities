@@ -1,0 +1,18 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block titre %}Erreur{% endblock %} – Suivi des marges</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="page-erreur">
+  <main class="carte carte--erreur">
+    <p class="page-erreur__code">{% block code %}{% endblock %}</p>
+    <h1>{% block titre_page %}{% endblock %}</h1>
+    <p>{% block message %}{% endblock %}</p>
+    <p><a class="btn" href="/">Retour à l'accueil</a></p>
+  </main>
+</body>
+</html>

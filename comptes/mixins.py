@@ -18,12 +18,16 @@ class AccesSocieteMixin(LoginRequiredMixin):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
         code = kwargs.get("code_societe")
-        self.societe = Societe.objects.pour_utilisateur(request.user).filter(code=code).first()
+        self.societe = self.trouver_societe(request, code)
         if self.societe is None:
             acces.signaler_refus(request.user, "lire_societe", societe=code, chemin=request.path)
             raise Http404("Société introuvable.")
         self.verifier_droit(request)
         return super().dispatch(request, *args, **kwargs)
+
+    def trouver_societe(self, request, code):
+        """Société `code` parmi celles que l'utilisateur peut lire (None sinon)."""
+        return Societe.objects.pour_utilisateur(request.user).filter(code=code).first()
 
     def verifier_droit(self, request) -> None:
         """Contrôle supplémentaire des sous-classes ; la lecture est déjà vérifiée."""
