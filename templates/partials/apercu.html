@@ -1,0 +1,11 @@
+{% load format_fr %}
+{% if repartition %}
+  <span>Marge <strong>{{ repartition.marge|fcfa }}</strong> →</span>
+  <span><span class="pastille pastille--charges" aria-hidden="true"></span> Charges <strong>{{ repartition.charges|fcfa }}</strong></span>
+  <span class="texte-ac"><span class="pastille pastille--africa_commodities" aria-hidden="true"></span> Africa Com. <strong>{{ repartition.africa_commodities|fcfa }}</strong></span>
+  <span><span class="pastille pastille--risques" aria-hidden="true"></span> Risques <strong>{{ repartition.risques|fcfa }}</strong></span>
+  <span><span class="pastille pastille--provision" aria-hidden="true"></span> Provision <strong>{{ repartition.provision|fcfa }}</strong></span>
+  <span><span class="pastille pastille--comptes" aria-hidden="true"></span> Comptes <strong>{{ repartition.comptes|fcfa }}</strong></span>
+{% else %}
+  <span>Aperçu de la répartition : saisissez une quantité et une marge positives, à une date couverte par une règle.</span>
+{% endif %}

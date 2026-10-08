@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load format_fr %}
+{% block titre %}{{ societe.code|upper }} – Corbeille{% endblock %}
+{% block contenu %}
+  <section class="carte">
+    <h2>Corbeille <small>— {{ societe.libelle_ligne_pluriel }} supprimés, restaurables</small></h2>
+    <div class="cadre-tableau">
+      <table class="tableau">
+        <caption class="visuellement-cache">Lignes supprimées</caption>
+        <thead><tr><th scope="col">Supprimé le</th><th scope="col">Date</th><th scope="col">{{ societe.libelle_reference }}</th>
+          <th scope="col">Client</th><th scope="col" class="n">Qté</th><th scope="col" class="n">Marge totale</th>
+          <th scope="col"><span class="visuellement-cache">Actions</span></th></tr></thead>
+        <tbody>
+          {% for l in page %}
+            <tr>
+              <td>{{ l.supprime_le|date:"d/m/Y H:i" }}</td>
+              <td>{{ l.date|date:"d/m/Y" }}</td>
+              <td>{{ l.reference }}</td>
+              <td>{{ l.client.nom|default:"" }}</td>
+              <td class="n">{{ l.quantite|nombre }}</td>
+              <td class="n">{{ l.marge_totale|fcfa }}</td>
+              <td>
+                <form method="post" action="{% url 'interface:ligne_restaurer' societe.code l.pk %}"
+                      hx-post="{% url 'interface:ligne_restaurer' societe.code l.pk %}" hx-target="closest tr" hx-swap="outerHTML">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn--secondaire btn--petit" aria-label="Restaurer {{ l.reference }} du {{ l.date|date:'d/m/Y' }}">Restaurer</button>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="vide">La corbeille est vide.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

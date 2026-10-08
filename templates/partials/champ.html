@@ -1,0 +1,6 @@
+<div class="champ{% if large %} champ--large{% endif %}">
+  <label for="{{ champ.id_for_label }}">{{ champ.label }}</label>
+  {{ champ }}
+  {% if champ.help_text %}<p class="aide" id="{{ champ.auto_id }}_helptext">{{ champ.help_text }}</p>{% endif %}
+  {% if champ.errors %}<ul class="erreur-champ">{% for e in champ.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+</div>

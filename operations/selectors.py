@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from decimal import ROUND_HALF_UP, Decimal
 
-from django.db.models import Count, DecimalField, F, OuterRef, Subquery, Sum, Value
+from django.db.models import Count, DecimalField, F, OuterRef, Q, Subquery, Sum, Value
 from django.db.models.functions import Coalesce, TruncMonth
 
 from repartition.models import RegleRepartition
@@ -333,3 +333,38 @@ def etat_du_mois(societe: Societe, mois: date) -> dict:
     """État d'une société pour un mois : objectif atteint ? charges couvertes ? (4 requêtes)."""
     t = tableau_de_bord_mois(societe, mois)
     return {"marge": t["marge"], "objectif_atteint": t["objectif_atteint"], "charges_couvertes": t["couverture"].couvert}
+
+
+# --- Liste des lignes ----------------------------------------------------------------------------
+
+PERIODES = {"mois": "Mois de suivi", "annee": "Toute l'année", "tout": "Tout"}
+
+
+def lignes_filtrees(societe: Societe, mois: date, periode: str = "mois", recherche: str = "",
+                    client_id: int | None = None, projet: str = ""):
+    """
+    Lignes actives d'une société selon les filtres de la liste (queryset, aucune requête exécutée) :
+    période (mois de suivi / année / tout), recherche texte, client, projet. Triées par date.
+    """
+    qs = Ligne.objects.filter(societe=societe).select_related("client")
+    mois = premier_du_mois(mois)
+    if periode == "mois":
+        qs = qs.du_mois(mois)
+    elif periode == "annee":
+        qs = qs.de_l_annee(mois.year)
+    recherche = (recherche or "").strip()
+    if recherche:
+        qs = qs.filter(Q(reference__icontains=recherche) | Q(projet__icontains=recherche)
+                       | Q(client__nom__icontains=recherche) | Q(observation__icontains=recherche)
+                       | Q(extra__icontains=recherche))
+    if client_id:
+        qs = qs.filter(client_id=client_id)
+    if projet:
+        qs = qs.filter(projet=projet)
+    return qs.order_by("date", "id")
+
+
+def projets_de_la_societe(societe: Societe) -> list[str]:
+    """N° de projet déjà utilisés par la société (filtre de la liste, 1 requête)."""
+    return list(Ligne.objects.filter(societe=societe).exclude(projet="").order_by("projet")
+                .values_list("projet", flat=True).distinct())

@@ -1,0 +1,99 @@
+{% load format_fr %}
+<div id="liste-lignes" hx-get="{% url 'interface:lignes' societe.code %}{% if parametres %}?{{ parametres }}{% endif %}"
+     hx-trigger="lignesModifiees from:body" hx-target="this" hx-swap="outerHTML">
+  <div class="cadre-tableau">
+    <table class="tableau">
+      <caption class="visuellement-cache">{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés</caption>
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Date</th>
+          {% if societe.champ_extra_type %}<th scope="col">{{ societe.champ_extra_libelle }}</th>{% endif %}
+          <th scope="col">{{ societe.libelle_reference }}</th>
+          <th scope="col">N° projet</th>
+          <th scope="col">Client</th>
+          <th scope="col" class="n">Qté</th>
+          <th scope="col" class="n">Marge unit.</th>
+          <th scope="col" class="n">Marge totale</th>
+          <th scope="col" class="n">Charges</th>
+          <th scope="col" class="n">Africa Com.</th>
+          <th scope="col" class="n">Risques</th>
+          <th scope="col" class="n">Provision</th>
+          <th scope="col" class="n">Comptes {{ societe.code|upper }}</th>
+          <th scope="col">Observation</th>
+          <th scope="col"><span class="visuellement-cache">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in page %}
+          <tr>
+            <td>{{ page.start_index|add:forloop.counter0 }}</td>
+            <td>{{ l.date|date:"d/m/Y" }}</td>
+            {% if societe.champ_extra_type %}<td>{% if l.extra %}<span class="etiquette">{{ l.extra }}</span>{% endif %}</td>{% endif %}
+            <td>{{ l.reference }}</td>
+            <td>{% if l.projet %}<span class="badge-projet">{{ l.projet }}</span>{% endif %}</td>
+            <td>{{ l.client.nom|default:"" }}</td>
+            <td class="n">{{ l.quantite|nombre }}</td>
+            <td class="n">{{ l.marge_unitaire|nombre }}</td>
+            <td class="n"><strong>{{ l.marge_totale|nombre }}</strong></td>
+            <td class="n">{{ l.part_charges|nombre }}</td>
+            <td class="n texte-ac">{{ l.part_africa_commodities|nombre }}</td>
+            <td class="n">{{ l.part_risques|nombre }}</td>
+            <td class="n">{{ l.part_provision|nombre }}</td>
+            <td class="n">{{ l.part_comptes|nombre }}</td>
+            <td class="texte-long">{{ l.observation }}</td>
+            <td>
+              <div class="actions no-print">
+                {% if l.peut_modifier %}
+                  <a class="btn btn--secondaire btn--petit" href="{% url 'interface:ligne_modifier' societe.code l.pk %}"
+                     hx-get="{% url 'interface:ligne_modifier' societe.code l.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
+                     title="Modifier" aria-label="Modifier {{ l.reference }} du {{ l.date|date:'d/m/Y' }}">✎</a>
+                {% endif %}
+                {% if l.peut_supprimer %}
+                  <form method="post" action="{% url 'interface:ligne_supprimer' societe.code l.pk %}"
+                        hx-post="{% url 'interface:ligne_supprimer' societe.code l.pk %}" hx-target="closest tr" hx-swap="outerHTML"
+                        hx-confirm="Supprimer {{ l.reference }} du {{ l.date|date:'d/m/Y' }} ?">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn--danger btn--petit" title="Supprimer"
+                            aria-label="Supprimer {{ l.reference }} du {{ l.date|date:'d/m/Y' }}">✕</button>
+                  </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="16" class="vide">Aucun enregistrement pour cette période.{% if peut_saisir %} Utilisez le formulaire ci-dessus.{% endif %}</td></tr>
+        {% endfor %}
+      </tbody>
+      {% if totaux.nb_lignes %}
+        <tfoot>
+          <tr>
+            <td colspan="{% if societe.champ_extra_type %}6{% else %}5{% endif %}">TOTAL ({{ totaux.nb_lignes }} ligne{{ totaux.nb_lignes|pluralize }})</td>
+            <td class="n">{{ totaux.quantite|nombre }}</td>
+            <td class="n"></td>
+            <td class="n">{{ totaux.marge|nombre }}</td>
+            <td class="n">{{ totaux.charges|nombre }}</td>
+            <td class="n texte-ac">{{ totaux.africa_commodities|nombre }}</td>
+            <td class="n">{{ totaux.risques|nombre }}</td>
+            <td class="n">{{ totaux.provision|nombre }}</td>
+            <td class="n">{{ totaux.comptes|nombre }}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      {% endif %}
+    </table>
+  </div>
+  {% if page.has_other_pages %}
+    <nav class="pagination" aria-label="Pages">
+      {% if page.has_previous %}
+        <a class="btn btn--secondaire btn--petit" href="?{{ parametres }}{% if parametres %}&amp;{% endif %}page={{ page.previous_page_number }}"
+           hx-get="?{{ parametres }}{% if parametres %}&amp;{% endif %}page={{ page.previous_page_number }}" hx-target="#liste-lignes" hx-swap="outerHTML" hx-push-url="true">‹ Précédente</a>
+      {% endif %}
+      <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span>
+      {% if page.has_next %}
+        <a class="btn btn--secondaire btn--petit" href="?{{ parametres }}{% if parametres %}&amp;{% endif %}page={{ page.next_page_number }}"
+           hx-get="?{{ parametres }}{% if parametres %}&amp;{% endif %}page={{ page.next_page_number }}" hx-target="#liste-lignes" hx-swap="outerHTML" hx-push-url="true">Suivante ›</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+</div>

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load format_fr %}
+{% block titre %}{{ societe.code|upper }} – {{ societe.libelle_ligne_pluriel|majuscule_initiale }}{% endblock %}
+{% block contenu %}
+  {% if form %}{% include "partials/ligne_form.html" %}{% endif %}
+
+  <section class="carte">
+    <h2>{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés
+      <small>— {% if periode == 'mois' %}{{ mois|mois_long }}{% elif periode == 'annee' %}année {{ mois|date:"Y" }}{% else %}toutes périodes{% endif %}</small></h2>
+
+    <form id="filtres" class="filtres no-print" method="get" action="{% url 'interface:lignes' societe.code %}"
+          hx-get="{% url 'interface:lignes' societe.code %}" hx-target="#liste-lignes" hx-swap="outerHTML" hx-push-url="true"
+          hx-trigger="change, input changed delay:400ms from:#{{ filtres.q.id_for_label }}, submit">
+      {% include "partials/champ.html" with champ=filtres.q %}
+      {% include "partials/champ.html" with champ=filtres.periode %}
+      {% include "partials/champ.html" with champ=filtres.client %}
+      {% include "partials/champ.html" with champ=filtres.projet %}
+      <button type="submit" class="btn btn--secondaire js-masque">Filtrer</button>
+    </form>
+
+    {% include "partials/lignes_liste.html" %}
+  </section>
+
+  <dialog class="dialogue" id="dialogue-ligne" aria-labelledby="titre-dialogue">
+    <div id="dialogue-contenu"></div>
+  </dialog>
+{% endblock %}

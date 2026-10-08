@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import views, views_lignes
 
 app_name = "interface"
 
@@ -13,7 +13,14 @@ urlpatterns = [
     path("s/<slug:code_societe>/", views.TableauDeBordView.as_view(), name="tableau"),
     path("s/<slug:code_societe>/objectif/", views.ObjectifView.as_view(), name="objectif"),
     path("s/<slug:code_societe>/depenses/", views.DepensesView.as_view(), name="depenses"),
-    path("s/<slug:code_societe>/lignes/", views.PageAVenirView.as_view(section="lignes"), name="lignes"),
+    path("s/<slug:code_societe>/lignes/", views_lignes.LignesView.as_view(), name="lignes"),
+    path("s/<slug:code_societe>/lignes/apercu/", views_lignes.ApercuView.as_view(), name="apercu"),
+    path("s/<slug:code_societe>/lignes/<int:pk>/modifier/", views_lignes.LigneModifierView.as_view(),
+         name="ligne_modifier"),
+    path("s/<slug:code_societe>/lignes/<int:pk>/supprimer/", views_lignes.LigneSupprimerView.as_view(),
+         name="ligne_supprimer"),
+    path("s/<slug:code_societe>/lignes/<int:pk>/restaurer/", views_lignes.LigneRestaurerView.as_view(),
+         name="ligne_restaurer"),
     path("s/<slug:code_societe>/clients/", views.PageAVenirView.as_view(section="clients"), name="clients"),
-    path("s/<slug:code_societe>/corbeille/", views.PageAVenirView.as_view(section="corbeille"), name="corbeille"),
+    path("s/<slug:code_societe>/corbeille/", views_lignes.CorbeilleView.as_view(), name="corbeille"),
 ]

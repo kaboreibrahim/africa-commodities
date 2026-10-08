@@ -1,0 +1,17 @@
+{% if form.non_field_errors %}<ul class="erreurs-formulaire" role="alert">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+<div class="formulaire">
+  {% include "partials/champ.html" with champ=form.date %}
+  {% if form.extra %}{% include "partials/champ.html" with champ=form.extra %}{% endif %}
+  {% include "partials/champ.html" with champ=form.reference %}
+  {% include "partials/champ.html" with champ=form.projet %}
+  {% include "partials/champ.html" with champ=form.client %}
+  {% include "partials/champ.html" with champ=form.quantite %}
+  {% include "partials/champ.html" with champ=form.marge_unitaire %}
+  {% include "partials/champ.html" with champ=form.observation large=True %}
+</div>
+<div class="apercu" id="{{ prefixe }}apercu" aria-live="polite"
+     hx-get="{% url 'interface:apercu' societe.code %}" hx-include="closest form" hx-params="quantite,marge_unitaire,date"
+     hx-target="this" hx-swap="innerHTML" hx-sync="this:replace"
+     hx-trigger="load, input changed delay:300ms from:#{{ form.quantite.id_for_label }}, input changed delay:300ms from:#{{ form.marge_unitaire.id_for_label }}, change from:#{{ form.date.id_for_label }}">
+  <span>Aperçu de la répartition : saisissez la quantité et la marge.</span>
+</div>

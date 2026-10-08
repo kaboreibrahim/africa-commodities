@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titre %}{{ societe.code|upper }} – Modifier {{ ligne.reference }}{% endblock %}
+{% block contenu %}
+  <section class="carte">
+    <h2>Modifier : {{ societe.libelle_ligne }} {{ ligne.reference }}</h2>
+    <form method="post" action="{% url 'interface:ligne_modifier' societe.code ligne.pk %}">
+      {% csrf_token %}
+      {% include "partials/ligne_champs.html" with prefixe="modif-" %}
+      <div class="formulaire__actions">
+        <button type="submit">✔ Enregistrer</button>
+        <a class="btn btn--secondaire" href="{% url 'interface:lignes' societe.code %}">Annuler</a>
+      </div>
+    </form>
+  </section>
+{% endblock %}

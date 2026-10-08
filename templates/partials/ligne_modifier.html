@@ -1,0 +1,15 @@
+<div class="dialogue__corps">
+  <div class="dialogue__entete">
+    <h2 id="titre-dialogue">Modifier : {{ societe.libelle_ligne }} {{ ligne.reference }}</h2>
+    <button type="button" class="btn btn--secondaire btn--petit" data-fermer-dialogue aria-label="Fermer">✕</button>
+  </div>
+  <form method="post" action="{% url 'interface:ligne_modifier' societe.code ligne.pk %}"
+        hx-post="{% url 'interface:ligne_modifier' societe.code ligne.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML">
+    {% csrf_token %}
+    {% include "partials/ligne_champs.html" with prefixe="modif-" %}
+    <div class="formulaire__actions">
+      <button type="submit">✔ Enregistrer</button>
+      <button type="button" class="btn btn--secondaire" data-fermer-dialogue>Annuler</button>
+    </div>
+  </form>
+</div>

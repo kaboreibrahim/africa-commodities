@@ -237,7 +237,7 @@ details.donnees summary { cursor: pointer; color: var(--c-principale); font-weig
 details.donnees .cadre-tableau { margin-top: 8px; }
 
 /* ---------- Tableaux ---------- */
-.cadre-tableau { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.cadre-tableau { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; position: relative; }
 table.tableau { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tableau th {
   background: var(--c-foncee); color: var(--blanc); text-align: left; padding: 8px;
