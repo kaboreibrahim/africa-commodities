@@ -1,0 +1,22 @@
+{% extends "base_auth.html" %}
+{% block head_title %}Double authentification{% endblock %}
+{% block content %}
+  <h1>Double authentification</h1>
+  <p>Saisissez le code à 6 chiffres de votre application d'authentification, ou l'un de vos codes de récupération.</p>
+  <form method="post" action="{% url 'mfa_authenticate' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+      <label for="id_code">Code</label>
+      <input type="text" name="code" id="id_code" autocomplete="one-time-code" required autofocus>
+      {{ form.code.errors }}
+    </p>
+    {{ redirect_field }}
+    <button type="submit">Valider</button>
+  </form>
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{% url 'account_login' %}">
+    <p class="helptext"><button type="submit" class="bouton">Annuler</button></p>
+  </form>
+{% endblock %}

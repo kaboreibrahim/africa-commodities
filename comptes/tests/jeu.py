@@ -1,6 +1,9 @@
 """Jeu d'utilisateurs commun aux tests de sécurité (un par rôle)."""
 from datetime import date
 
+from allauth.mfa.totp.internal.auth import TOTP, generate_totp_secret
+from axes.utils import reset as reinitialiser_axes
+from django.core.cache import cache
 from django.utils import timezone
 
 from comptes.models import Affectation, Utilisateur
@@ -26,6 +29,22 @@ def creer_utilisateur(identifiant, role_global="", affectations=(), **extra):
     for societe, role, *actif in affectations:
         Affectation.objects.create(utilisateur=user, societe=societe, role=role, actif=actif[0] if actif else True)
     return user
+
+
+def activer_totp(user) -> str:
+    """Active la 2FA (TOTP) d'un utilisateur ; renvoie le secret."""
+    secret = generate_totp_secret()
+    TOTP.activate(user, secret)
+    return secret
+
+
+class ReinitialiserAxesMixin:
+    """Remet à zéro les compteurs d'axes et les limites d'allauth (cache) avant chaque test."""
+
+    def setUp(self):
+        super().setUp()
+        reinitialiser_axes()
+        cache.clear()
 
 
 def creer_ligne(societe, cree_par=None, **kw):

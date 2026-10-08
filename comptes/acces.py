@@ -83,6 +83,18 @@ def peut_administrer(user) -> bool:
     return est_admin_groupe(user)
 
 
+def roles_de(user) -> set[str]:
+    """Tous les rôles de l'utilisateur (global et par société), par ex. pour imposer la 2FA."""
+    if not _est_actif(user):
+        return set()
+    roles = set(_affectations(user).values())
+    if est_admin_groupe(user):
+        roles.add(ADMIN_GROUPE)
+    elif user.role_global == DIRECTION:
+        roles.add(DIRECTION)
+    return roles
+
+
 def role_sur(user, societe) -> str | None:
     """Rôle effectif de `user` sur `societe` (objet Societe ou identifiant)."""
     if not _est_actif(user):

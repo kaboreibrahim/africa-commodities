@@ -19,10 +19,13 @@ SECURE_REFERRER_POLICY = "same-origin"
 # Cookies
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_AGE = 60 * 60 * 8  # 8 h
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
 CSRF_TRUSTED_ORIGINS = env.list("DJANGO_CSRF_TRUSTED_ORIGINS", default=[])
 
 X_FRAME_OPTIONS = "DENY"
+
+# axes derrière Nginx (1 proxy de confiance) : la vraie IP du client est lue dans X-Forwarded-For.
+# Nginx doit écraser l'en-tête : proxy_set_header X-Forwarded-For $remote_addr;
+AXES_IPWARE_PROXY_COUNT = env.int("AXES_PROXY_COUNT", default=1)
+AXES_IPWARE_META_PRECEDENCE_ORDER = ["HTTP_X_FORWARDED_FOR", "REMOTE_ADDR"]

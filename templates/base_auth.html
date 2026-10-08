@@ -1,0 +1,29 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block head_title %}{% endblock %} – Suivi des marges</title>
+  <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <main class="carte">
+    <p class="marque">Groupe – Suivi des marges</p>
+    {% if messages %}
+      <ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+    {% if user.is_authenticated %}
+      <nav class="menu">
+        <a href="{% url 'accueil' %}">Accueil</a>
+        <a href="{% url 'mfa_index' %}">Double authentification</a>
+        <a href="{% url 'account_change_password' %}">Mot de passe</a>
+        <a href="{% url 'account_logout' %}">Se déconnecter</a>
+      </nav>
+    {% endif %}
+  </main>
+  {% block extra_body %}{% endblock %}
+</body>
+</html>

@@ -7,6 +7,9 @@ class ComptesConfig(AppConfig):
     name = "comptes"
     verbose_name = "comptes et sécurité"
 
+    def ready(self):
+        from . import signals  # noqa: F401  (enregistre les récepteurs)
+
 
 class AdminGroupeConfig(admin_apps.AdminConfig):
     """Remplace le site d'administration par défaut par `SiteAdministration`."""

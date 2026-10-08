@@ -2,6 +2,7 @@
 Réglages communs à tous les environnements.
 Les valeurs sensibles viennent des variables d'environnement (fichier .env en dev).
 """
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -29,6 +30,11 @@ INSTALLED_APPS = [
     "societes",
     "repartition",
     "operations",
+    # Sécurité
+    "allauth",
+    "allauth.account",
+    "allauth.mfa",
+    "axes",
 ]
 
 MIDDLEWARE = [
@@ -39,6 +45,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
+    "comptes.middleware.MFAObligatoireMiddleware",
+    "axes.middleware.AxesMiddleware",  # doit rester en DERNIER
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -70,9 +79,44 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
 AUTH_USER_MODEL = "comptes.Utilisateur"
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",  # en premier : bloque avant toute vérification
     "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
     "comptes.backends.PermissionsAdminGroupe",  # permissions de l'admin pour l'admin groupe
 ]
+
+# --- allauth : connexion par e-mail, pas d'inscription publique ---
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+ACCOUNT_ADAPTER = "comptes.adapters.AdaptateurCompte"  # is_open_for_signup -> False
+ACCOUNT_EMAIL_VERIFICATION = "none"  # comptes créés par l'admin groupe
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+ACCOUNT_SESSION_REMEMBER = False
+# Le blocage par identifiant est fait par axes ; allauth garde seulement sa limite par IP.
+ACCOUNT_RATE_LIMITS = {"login_failed": "10/m/ip"}
+LOGIN_URL = "account_login"
+LOGIN_REDIRECT_URL = "/"
+
+MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
+MFA_TOTP_ISSUER = "Groupe – Suivi des marges"
+# Rôles pour lesquels la 2FA (TOTP) est obligatoire (voir comptes/middleware.py).
+MFA_ROLES_OBLIGATOIRES = ["admin_groupe", "responsable"]
+
+# --- axes : 5 échecs -> blocage 30 min, par couple identifiant + IP ---
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = timedelta(minutes=30)
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+AXES_USERNAME_FORM_FIELD = "login"  # nom du champ dans le formulaire allauth
+# allauth transmet l'identifiant sous la clé « email » : on le lit nous-mêmes.
+AXES_USERNAME_CALLABLE = "comptes.axes.identifiant_tentative"
+AXES_LOCKOUT_TEMPLATE = "comptes/compte_bloque.html"
+
+# --- Sessions : expiration après 2 h d'inactivité ---
+SESSION_COOKIE_AGE = 60 * 60 * 2
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
 
 # Rôle « Saisie » : modification de ses propres lignes du mois en cours et des N mois précédents.
 SAISIE_FENETRE_MODIFICATION_MOIS = env.int("SAISIE_FENETRE_MODIFICATION_MOIS", default=1)
@@ -98,6 +142,7 @@ USE_THOUSAND_SEPARATOR = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -110,6 +155,9 @@ LOGGING = {
     "formatters": {"simple": {"format": "{asctime} {levelname} {name} : {message}", "style": "{"}},
     "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "simple"}},
     "root": {"handlers": ["console"], "level": "INFO"},
+    "loggers": {
+        "axes": {"level": "WARNING"},  # les événements utiles vont dans le journal de sécurité
+    },
 }
 
 MEDIA_URL = "media/"

@@ -1,0 +1,78 @@
+/* Pages d'authentification : feuille locale (aucun CDN, aucun style inline — compatible CSP). */
+:root {
+  --vert: #1B7A2E;
+  --vert-fonce: #0E5A1E;
+  --orange: #E8720C;
+  --fond: #F3F5F2;
+  --texte: #1F2A22;
+  --gris: #5D6B61;
+  --bord: #D5DDD6;
+  --erreur: #B3261E;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--fond);
+  color: var(--texte);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.carte {
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border: 1px solid var(--bord);
+  border-top: 4px solid var(--vert);
+  border-radius: 10px;
+  padding: 28px 28px 24px;
+  box-shadow: 0 6px 24px rgba(20, 40, 25, .08);
+}
+
+.marque { margin: 0 0 18px; color: var(--gris); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+h1 { margin: 0 0 16px; font-size: 22px; color: var(--vert-fonce); }
+h2 { font-size: 17px; margin: 22px 0 8px; }
+p { margin: 0 0 14px; }
+a { color: var(--vert); }
+
+form p, form div { margin-bottom: 14px; }
+label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+input[type=text], input[type=email], input[type=password], input[type=number] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--bord);
+  border-radius: 6px;
+  font: inherit;
+}
+input:focus { outline: 2px solid var(--vert); outline-offset: 1px; }
+input[disabled] { background: var(--fond); font-family: ui-monospace, Consolas, monospace; font-size: 14px; }
+.helptext, form span { display: block; color: var(--gris); font-size: 13px; margin-top: 4px; }
+
+button, .bouton {
+  display: inline-block;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--vert);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+button:hover, .bouton:hover { background: var(--vert-fonce); }
+
+.errorlist { list-style: none; margin: 4px 0 10px; padding: 0; color: var(--erreur); font-size: 14px; }
+.messages { list-style: none; margin: 0 0 16px; padding: 10px 12px; background: #EAF4EC; border-radius: 6px; font-size: 14px; }
+.alerte { padding: 12px 14px; border-left: 4px solid var(--erreur); background: #FBEDEC; border-radius: 4px; }
+
+img { display: block; max-width: 220px; margin: 0 auto 16px; }
+ul.liens { padding-left: 18px; }
+nav.menu { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--bord); font-size: 14px; }
+nav.menu a { margin-right: 14px; }

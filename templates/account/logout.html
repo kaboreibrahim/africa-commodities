@@ -1,0 +1,11 @@
+{% extends "base_auth.html" %}
+{% block head_title %}Déconnexion{% endblock %}
+{% block content %}
+  <h1>Déconnexion</h1>
+  <p>Voulez-vous vraiment vous déconnecter ?</p>
+  <form method="post" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    {{ redirect_field }}
+    <button type="submit">Se déconnecter</button>
+  </form>
+{% endblock %}

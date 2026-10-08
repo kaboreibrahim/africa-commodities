@@ -1,0 +1,10 @@
+{% extends "base_auth.html" %}
+{% block head_title %}Compte bloqué{% endblock %}
+{% block content %}
+  <h1>Connexion temporairement bloquée</h1>
+  <p class="alerte">
+    Trop de tentatives de connexion ont échoué. Par sécurité, la connexion est bloquée
+    pendant 30 minutes pour cet identifiant depuis cet appareil.
+  </p>
+  <p>Si vous avez oublié votre mot de passe, contactez l'administrateur du groupe.</p>
+{% endblock %}

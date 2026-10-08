@@ -21,6 +21,10 @@ class Utilisateur(AbstractUser):
     email = models.EmailField("adresse e-mail", unique=True)
     telephone = models.CharField("téléphone", max_length=30, blank=True)
     role_global = models.CharField("rôle groupe", max_length=20, choices=RoleGlobal.choices, blank=True, default="")
+    doit_changer_mot_de_passe = models.BooleanField(
+        "doit changer son mot de passe", default=False,
+        help_text="Le mot de passe est provisoire : son changement est imposé à la prochaine connexion.",
+    )
 
     class Meta:
         verbose_name = "utilisateur"

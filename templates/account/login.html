@@ -1,0 +1,23 @@
+{% extends "base_auth.html" %}
+{% block head_title %}Connexion{% endblock %}
+{% block content %}
+  <h1>Connexion</h1>
+  <form method="post" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+      <label for="id_login">Adresse e-mail</label>
+      <input type="email" name="login" id="id_login" autocomplete="email" required autofocus
+             value="{{ form.login.value|default_if_none:'' }}">
+      {{ form.login.errors }}
+    </p>
+    <p>
+      <label for="id_password">Mot de passe</label>
+      <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+      {{ form.password.errors }}
+    </p>
+    {{ redirect_field }}
+    <button type="submit">Se connecter</button>
+  </form>
+  <p class="helptext">Pas de compte ? Les accès sont créés par l'administrateur du groupe.</p>
+{% endblock %}

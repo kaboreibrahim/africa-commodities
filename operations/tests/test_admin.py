@@ -2,12 +2,17 @@ from django.conf import settings
 from django.test import TestCase
 from django.utils import timezone
 
-from comptes.tests.jeu import JeuUtilisateursMixin
+from comptes.tests.jeu import JeuUtilisateursMixin, activer_totp
 from operations.models import Ligne
 
 
 class LigneAdminTests(JeuUtilisateursMixin, TestCase):
     """L'admin passe par les services : cree_par / modifie_par remplis, suppression douce."""
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        activer_totp(cls.admin_groupe)  # 2FA obligatoire pour l'admin groupe
 
     def setUp(self):
         self.client.force_login(self.admin_groupe)

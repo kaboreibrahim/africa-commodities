@@ -1,0 +1,26 @@
+{% extends "base_auth.html" %}
+{% block head_title %}Activer la double authentification{% endblock %}
+{% block content %}
+  <h1>Activer la double authentification</h1>
+  <p>
+    Scannez ce QR code avec votre application d'authentification (Google Authenticator,
+    Microsoft Authenticator, FreeOTP…), puis saisissez le code à 6 chiffres qu'elle affiche.
+  </p>
+  <img src="{{ totp_svg_data_uri }}" alt="QR code de la double authentification" width="200" height="200">
+  <form method="post" action="{% url 'mfa_activate_totp' %}">
+    {% csrf_token %}
+    <p>
+      <label for="cle_secrete">Clé secrète (si vous ne pouvez pas scanner)</label>
+      <input type="text" id="cle_secrete" value="{{ form.secret }}" disabled>
+      <span>Conservez-la en lieu sûr : elle permet de réinstaller l'application.</span>
+    </p>
+    {{ form.non_field_errors }}
+    <p>
+      <label for="id_code">Code à 6 chiffres</label>
+      <input type="text" name="code" id="id_code" inputmode="numeric" autocomplete="one-time-code"
+             pattern="[0-9]{6}" maxlength="6" required autofocus>
+      {{ form.code.errors }}
+    </p>
+    <button type="submit">Activer</button>
+  </form>
+{% endblock %}
