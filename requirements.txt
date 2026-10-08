@@ -1,0 +1,5 @@
+Django>=5.2,<5.3          # version LTS (support jusqu'en avril 2028)
+django-environ>=0.11
+argon2-cffi>=23.1
+psycopg[binary]>=3.2      # PostgreSQL
+Pillow>=10.4              # logos des sociétés
