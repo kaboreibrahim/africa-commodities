@@ -44,7 +44,7 @@ def _affectations(user) -> dict[int, str]:
     if cache is None:
         cache = dict(
             Affectation.objects.filter(utilisateur_id=user.pk, actif=True, societe__actif=True)
-            .values_list("societe_id", "role")
+            .order_by().values_list("societe_id", "role")  # sans tri : pas de jointure inutile
         )
         user._affectations_cache = cache
     return cache

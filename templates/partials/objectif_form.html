@@ -1,0 +1,16 @@
+{% load format_fr l10n %}
+<form class="formulaire-objectif" method="post" action="{% url 'interface:objectif' societe.code %}"
+      hx-post="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">
+  {% csrf_token %}
+  <div class="champ">
+    <label for="{{ form.montant.id_for_label }}">Objectif de {{ mois|mois_long }} (FCFA)</label>
+    <input type="number" name="montant" id="{{ form.montant.id_for_label }}" min="0" step="10000" inputmode="numeric"
+           value="{{ form.montant.value|default_if_none:''|unlocalize }}" required
+           aria-describedby="aide-objectif"{% if form.montant.errors %} aria-invalid="true"{% endif %}>
+    {% if form.montant.errors %}<ul class="erreur-champ">{% for e in form.montant.errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+  </div>
+  <button type="submit">Enregistrer</button>
+  <a class="btn btn--secondaire" href="{% url 'interface:tableau' societe.code %}"
+     hx-get="{% url 'interface:tableau' societe.code %}" hx-target="#tableau-de-bord" hx-swap="outerHTML">Annuler</a>
+  <p class="aide" id="aide-objectif">{{ form.montant.help_text }}</p>
+</form>

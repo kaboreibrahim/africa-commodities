@@ -10,7 +10,8 @@ from comptes.tests.jeu import JeuUtilisateursMixin, activer_totp
 # Requêtes de session et d'authentification, exclues du décompte (cf. cahier des charges),
 # ainsi que le COUNT(*) de la pagination.
 REQUETES_EXCLUES = re.compile(
-    r'"django_session"|"comptes_utilisateur"|"mfa_authenticator"|"__count"|SAVEPOINT', re.IGNORECASE
+    r'(FROM|UPDATE|INTO) "(django_session|comptes_utilisateur|mfa_authenticator)"|"__count"|SAVEPOINT',
+    re.IGNORECASE,
 )
 
 HTMX = {"HTTP_HX_REQUEST": "true"}

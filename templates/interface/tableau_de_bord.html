@@ -1,3 +1,10 @@
 {% extends "base.html" %}
-{% load format_fr %}
-{% block contenu %}<section class="carte"><h2>Tableau de bord <small>— {{ mois|mois_long }}</small></h2></section>{% endblock %}
+{% load static %}
+{% block titre %}{{ societe.code|upper }} – Tableau de bord{% endblock %}
+{% block scripts %}
+  <script src="{% static 'vendor/chart.umd.min.js' %}" defer></script>
+  <script src="{% static 'js/graphiques.js' %}" defer></script>
+{% endblock %}
+{% block contenu %}
+  {% include "partials/tableau_de_bord.html" %}
+{% endblock %}

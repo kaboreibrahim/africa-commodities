@@ -2,14 +2,22 @@
 Vues de l'interface. Une vue vérifie l'accès (mixins), appelle un sélecteur ou un service,
 puis rend un gabarit : aucune règle métier ni aucun calcul ici.
 """
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
-from django.views.generic import TemplateView
+from django.views.generic import FormView, TemplateView
 
 from comptes import acces
+from core.templatetags.format_fr import fcfa, mois_long
+from operations.selectors import tableau_de_bord_societe
+from societes.services import definir_objectif
 
-from .contexte import InterfaceMixin, PageGroupeMixin, PageSocieteMixin
+from . import graphiques
+from .contexte import GestionSocieteMixin, InterfaceMixin, PageGroupeMixin, PageSocieteMixin
+from .forms import ObjectifForm
+from .htmx import declencher, toast
 from .theme import css_theme
 
 
@@ -59,8 +67,54 @@ class OngletsView(InterfaceMixin, TemplateView):
 # --- Tableau de bord société (lot 3.2) et Vue Groupe (lot 3.5) --------------------------------
 
 class TableauDeBordView(PageSocieteMixin, TemplateView):
+    """Tableau de bord d'une société. En HTMX (rafraîchissement), seul le contenu est renvoyé."""
+
     template_name = "interface/tableau_de_bord.html"
     section = "tableau"
+
+    def get_template_names(self):
+        return ["partials/tableau_de_bord.html"] if self.est_htmx else [self.template_name]
+
+    def get_context_data(self, **kwargs):
+        contexte = super().get_context_data(**kwargs)
+        donnees = tableau_de_bord_societe(self.societe, self.mois)
+        contexte.update(
+            donnees=donnees,
+            ind=donnees["indicateurs"],
+            postes=graphiques.postes(donnees["indicateurs"], self.societe.code),
+            progression=graphiques.progression(donnees["indicateurs"]),
+            graphiques=graphiques.donnees_tableau_de_bord(donnees, self.societe),
+        )
+        return contexte
+
+
+class ObjectifView(GestionSocieteMixin, FormView):
+    """Définir l'objectif du mois (Responsable, Admin groupe) via le service `definir_objectif`."""
+
+    form_class = ObjectifForm
+    section = "tableau"
+
+    def get_template_names(self):
+        return ["partials/objectif_form.html"] if self.est_htmx else ["interface/objectif.html"]
+
+    def get_initial(self):
+        return {"montant": self.societe.objectif_pour(self.mois)}
+
+    def form_valid(self, form):
+        try:
+            definir_objectif(self.request.user, self.societe, self.mois, form.cleaned_data["montant"])
+        except ValidationError as erreur:
+            form.add_error("montant", erreur.messages)
+            return self.form_invalid(form)
+        message = f"Objectif de {mois_long(self.mois)} enregistré : {fcfa(form.cleaned_data['montant'])}."
+        if self.est_htmx:
+            reponse = HttpResponse(status=204)
+            return declencher(reponse, objectifModifie=True, toast=toast(message))
+        messages.success(self.request, message)
+        return redirect("interface:tableau", code_societe=self.societe.code)
+
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form), status=422)
 
 
 class VueGroupeView(PageGroupeMixin, TemplateView):

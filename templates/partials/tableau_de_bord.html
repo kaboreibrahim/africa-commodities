@@ -1,0 +1,163 @@
+{% load format_fr %}
+<div id="tableau-de-bord" hx-get="{% url 'interface:tableau' societe.code %}"
+     hx-trigger="objectifModifie from:body, lignesModifiees from:body" hx-swap="outerHTML">
+
+  {% if ind.objectif_atteint %}
+    <div class="bandeau" role="status">
+      <span aria-hidden="true">🎉</span>
+      <span>Objectif de {{ mois|mois_long }} atteint : {{ ind.marge|fcfa }} pour un objectif de {{ ind.objectif|fcfa }}</span>
+    </div>
+  {% endif %}
+
+  <div class="objectif-zone" id="zone-objectif">
+    <span>Objectif de {{ mois|mois_long }} : <span class="objectif-zone__valeur">{{ ind.objectif|fcfa }}</span></span>
+    {% if peut_gerer %}
+      <a class="btn btn--secondaire btn--petit" href="{% url 'interface:objectif' societe.code %}"
+         hx-get="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">Modifier l'objectif</a>
+    {% endif %}
+  </div>
+
+  <section class="kpis" aria-label="Indicateurs de {{ mois|mois_long }}">
+    <div class="kpi">
+      <div class="kpi__l">Marge de {{ mois|mois_long }}</div>
+      <div class="kpi__v">{{ ind.marge|fcfa }}</div>
+      <div class="kpi__s">Objectif : {{ ind.objectif|fcfa }}</div>
+      <progress class="barre" max="100" value="{% if ind.progression > 100 %}100{% else %}{{ ind.progression|floatformat:'0u' }}{% endif %}"
+                aria-label="Progression vers l'objectif">{{ ind.progression|pct }}</progress>
+      <div class="kpi__s">{{ ind.progression|pct }} atteint</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">{{ societe.unite|majuscule_initiale }}s du mois</div>
+      <div class="kpi__v">{{ ind.quantite|nombre }}</div>
+      <div class="kpi__s">Marge moyenne : {{ ind.marge_moyenne|fcfa }}</div>
+      {% if ind.objectif_atteint %}
+        <div class="kpi__s ok">✔ Objectif atteint</div>
+      {% else %}
+        <div class="kpi__s">≈ {{ ind.unites_restantes|nombre }} {{ societe.unite }}(s) restant(s)</div>
+      {% endif %}
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Charges ({% if ind.pct_charges is not None %}{{ ind.pct_charges|pct }}{% else %}{{ regle_pied.pct_charges|pct }}{% endif %} de la marge)</div>
+      <div class="kpi__v">{{ ind.charges|fcfa }}</div>
+      <div class="kpi__s">Part de la marge réservée aux charges</div>
+    </div>
+    <div class="kpi kpi--ac">
+      <div class="kpi__l">Africa Commodities</div>
+      <div class="kpi__v texte-ac">{{ ind.africa_commodities|fcfa }}</div>
+      <div class="kpi__s">{% if ind.pct_africa_commodities is not None %}{{ ind.pct_africa_commodities|pct }}{% else %}{{ regle_pied.pct_africa_commodities|pct }}{% endif %} du reste après charges</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Risques + Provision</div>
+      <div class="kpi__v">{{ ind.risques_et_provision|fcfa }}</div>
+      <div class="kpi__s">Risques {{ ind.risques|fcfa }} + provision {{ ind.provision|fcfa }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Comptes {{ societe.code|upper }} (disponible)</div>
+      <div class="kpi__v">{{ ind.comptes|fcfa }}</div>
+      <div class="kpi__s">Montant réellement disponible</div>
+    </div>
+  </section>
+
+  {{ graphiques|json_script:"donnees-graphiques" }}
+
+  <div class="graphiques">
+    <section class="carte">
+      <h2>Répartition de la marge <small>— {{ mois|mois_long }}</small></h2>
+      <div class="anneau">
+        <div class="graphique graphique--anneau">
+          {% if ind.marge %}
+            <canvas data-graphique="repartition" data-source="donnees-graphiques" role="img"
+                    aria-label="Anneau : répartition de la marge de {{ ind.marge|fcfa }} entre les 5 postes (détail ci-contre)"></canvas>
+          {% else %}<p class="graphique-vide">Aucune donnée sur la période</p>{% endif %}
+        </div>
+        <ul class="legende">
+          {% for p in postes %}
+            <li><span class="pastille pastille--{{ p.cle }}" aria-hidden="true"></span><span class="legende__nom">{{ p.nom }}</span>
+              <span class="legende__valeur">{{ p.valeur|fcfa }}</span><span class="legende__pct">{{ p.part|pct }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <details class="donnees">
+        <summary>Voir les données</summary>
+        <div class="cadre-tableau"><table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Répartition de la marge de {{ mois|mois_long }}</caption>
+          <thead><tr><th scope="col">Poste</th><th scope="col" class="n">Montant</th><th scope="col" class="n">Part</th></tr></thead>
+          <tbody>{% for p in postes %}<tr><td>{{ p.nom }}</td><td class="n">{{ p.valeur|fcfa }}</td><td class="n">{{ p.part|pct }}</td></tr>{% endfor %}</tbody>
+          <tfoot><tr><td>Marge</td><td class="n">{{ ind.marge|fcfa }}</td><td class="n">{% if ind.marge %}{{ 100|pct }}{% endif %}</td></tr></tfoot>
+        </table></div>
+      </details>
+    </section>
+
+    <section class="carte">
+      <h2>Progression vers l'objectif <small>— {{ mois|mois_long }}</small></h2>
+      <div class="anneau">
+        <div class="graphique graphique--anneau">
+          {% if ind.objectif or ind.marge %}
+            <canvas data-graphique="objectif" data-source="donnees-graphiques" role="img"
+                    aria-label="Anneau : {{ ind.progression|pct }} de l'objectif atteint (détail ci-contre)"></canvas>
+          {% else %}<p class="graphique-vide">Aucune donnée sur la période</p>{% endif %}
+        </div>
+        <ul class="legende">
+          {% for p in progression %}
+            <li><span class="pastille pastille--{{ p.cle }}" aria-hidden="true"></span><span class="legende__nom">{{ p.nom }}</span>
+              <span class="legende__valeur">{{ p.valeur|fcfa }}</span><span class="legende__pct">{{ p.part|pct }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+      <details class="donnees">
+        <summary>Voir les données</summary>
+        <div class="cadre-tableau"><table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Progression vers l'objectif de {{ mois|mois_long }}</caption>
+          <tbody>
+            <tr><th scope="row">Marge du mois</th><td class="n">{{ ind.marge|fcfa }}</td></tr>
+            <tr><th scope="row">Objectif</th><td class="n">{{ ind.objectif|fcfa }}</td></tr>
+            <tr><th scope="row">Progression</th><td class="n">{{ ind.progression|pct }}</td></tr>
+          </tbody>
+        </table></div>
+      </details>
+    </section>
+  </div>
+
+  <div class="graphiques">
+    <section class="carte">
+      <h2>Marge par mois <small>— {{ mois|date:"Y" }}</small></h2>
+      <div class="graphique">
+        <canvas data-graphique="mois" data-source="donnees-graphiques" role="img"
+                aria-label="Barres : marge de chaque mois de {{ mois|date:"Y" }} et objectif en pointillé (tableau des données ci-dessous)"></canvas>
+      </div>
+      <p class="aide">Barre pleine = objectif atteint · barre atténuée = objectif non atteint · trait pointillé = objectif du mois.</p>
+      <details class="donnees">
+        <summary>Voir les données</summary>
+        <div class="cadre-tableau"><table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Marge et objectif par mois en {{ mois|date:"Y" }}</caption>
+          <thead><tr><th scope="col">Mois</th><th scope="col" class="n">Marge</th><th scope="col" class="n">Objectif</th><th scope="col">Atteint</th></tr></thead>
+          <tbody>{% for m in donnees.annee %}
+            <tr><td>{% if m.selectionne %}<strong>{{ m.mois|mois_long }}</strong>{% else %}{{ m.mois|mois_long }}{% endif %}</td>
+              <td class="n">{{ m.marge|fcfa }}</td><td class="n">{{ m.objectif|fcfa }}</td>
+              <td>{% if m.objectif_atteint %}✔ oui{% else %}non{% endif %}</td></tr>
+          {% endfor %}</tbody>
+        </table></div>
+      </details>
+    </section>
+
+    <section class="carte">
+      <h2>Marge par projet <small>— {{ mois|mois_long }}</small></h2>
+      <div class="graphique">
+        {% if donnees.projets %}
+          <canvas data-graphique="projets" data-source="donnees-graphiques" role="img"
+                  aria-label="Barres horizontales : marge par projet en {{ mois|mois_long }} (tableau des données ci-dessous)"></canvas>
+        {% else %}<p class="graphique-vide">Aucune donnée sur la période</p>{% endif %}
+      </div>
+      <details class="donnees">
+        <summary>Voir les données</summary>
+        <div class="cadre-tableau"><table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Marge par projet en {{ mois|mois_long }}</caption>
+          <thead><tr><th scope="col">Projet</th><th scope="col" class="n">{{ societe.unite|majuscule_initiale }}s</th><th scope="col" class="n">Marge</th></tr></thead>
+          <tbody>{% for p in donnees.projets %}
+            <tr><td>{{ p.projet }}</td><td class="n">{{ p.quantite|nombre }}</td><td class="n">{{ p.marge|fcfa }}</td></tr>
+          {% empty %}<tr><td colspan="3" class="vide">Aucune donnée sur la période</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </details>
+    </section>
+  </div>
+</div>
