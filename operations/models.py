@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from simple_history.models import HistoricalRecords
 
 from core.models import ActifQuerySet, SuppressionDouceMixin, TimestampMixin
 from repartition.models import RegleRepartition
@@ -60,6 +61,7 @@ class Ligne(TimestampMixin, SuppressionDouceMixin, models.Model):
 
     objects = LigneManager()
     tous = LigneQuerySet.as_manager()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-date", "-id"]

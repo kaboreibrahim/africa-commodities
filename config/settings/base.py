@@ -35,10 +35,12 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.mfa",
     "axes",
+    "simple_history",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "comptes.journal.JournalSecuriteMiddleware",  # écrit le journal APRÈS la vue (hors transaction)
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -47,6 +49,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "comptes.middleware.MFAObligatoireMiddleware",
+    "simple_history.middleware.HistoryRequestMiddleware",
     "axes.middleware.AxesMiddleware",  # doit rester en DERNIER
 ]
 
@@ -96,6 +99,10 @@ ACCOUNT_SESSION_REMEMBER = False
 ACCOUNT_RATE_LIMITS = {"login_failed": "10/m/ip"}
 LOGIN_URL = "account_login"
 LOGIN_REDIRECT_URL = "/"
+
+# --- Historique des modifications (django-simple-history) ---
+# Pas de « restaurer cette version » dans l'admin : il contournerait les services d'écriture.
+SIMPLE_HISTORY_REVERT_DISABLED = True
 
 MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
 MFA_TOTP_ISSUER = "Groupe – Suivi des marges"

@@ -1,10 +1,11 @@
 from django.contrib import admin
+from simple_history.admin import SimpleHistoryAdmin
 
 from .models import RegleRepartition
 
 
 @admin.register(RegleRepartition)
-class RegleRepartitionAdmin(admin.ModelAdmin):
+class RegleRepartitionAdmin(SimpleHistoryAdmin):
     list_display = ("date_debut", "pct_charges", "pct_africa_commodities", "parts_risques",
                     "parts_provision", "parts_comptes", "note")
     readonly_fields = ("cree_le", "modifie_le")

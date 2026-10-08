@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from simple_history.models import HistoricalRecords
 
 from core.models import TimestampMixin
 
@@ -41,6 +42,7 @@ class RegleRepartition(TimestampMixin, models.Model):
     note = models.CharField("note / décision", max_length=255, blank=True)
 
     objects = RegleRepartitionQuerySet.as_manager()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-date_debut"]

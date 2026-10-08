@@ -24,7 +24,8 @@ def _verifier_champs(donnees: dict) -> None:
         raise ValueError(f"Champ(s) non modifiable(s) : {', '.join(sorted(inconnus))}.")
 
 
-def _enregistrer(ligne: Ligne) -> Ligne:
+def _enregistrer(user, ligne: Ligne) -> Ligne:
+    ligne._history_user = user  # auteur de l'entrée d'historique, même hors requête HTTP
     ligne.full_clean(exclude=CHAMPS_CALCULES)
     with transaction.atomic():
         ligne.save()
@@ -35,7 +36,7 @@ def creer_ligne(user, societe, **donnees) -> Ligne:
     _verifier_champs(donnees)
     if not acces.peut_saisir(user, societe):
         acces.refuser(user, "creer_ligne", societe=societe)
-    return _enregistrer(Ligne(societe=societe, cree_par=user, **donnees))
+    return _enregistrer(user, Ligne(societe=societe, cree_par=user, **donnees))
 
 
 def modifier_ligne(user, ligne: Ligne, **donnees) -> Ligne:
@@ -48,7 +49,7 @@ def modifier_ligne(user, ligne: Ligne, **donnees) -> Ligne:
     if not acces.peut_modifier_ligne(user, ligne):
         acces.refuser(user, "modifier_ligne", ligne=ligne.pk, motif="hors fenêtre de modification")
     ligne.modifie_par = user
-    return _enregistrer(ligne)
+    return _enregistrer(user, ligne)
 
 
 def supprimer_ligne(user, ligne: Ligne) -> None:

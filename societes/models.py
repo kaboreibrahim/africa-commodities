@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.db.models.functions import Lower
+from simple_history.models import HistoricalRecords
 
 from core.models import ActifQuerySet, SuppressionDouceMixin, TimestampMixin
 
@@ -77,6 +78,7 @@ class Societe(TimestampMixin, models.Model):
     logo = models.ImageField(upload_to="logos/", blank=True)
 
     objects = SocieteQuerySet.as_manager()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["ordre", "nom"]
@@ -127,6 +129,7 @@ class Client(TimestampMixin, SuppressionDouceMixin, models.Model):
 
     objects = ClientManager()
     tous = ClientQuerySet.as_manager()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["nom"]
@@ -162,6 +165,7 @@ class ObjectifMensuel(TimestampMixin, models.Model):
     montant = models.DecimalField("objectif (FCFA)", max_digits=16, decimal_places=0, validators=[MinValueValidator(0)])
 
     objects = ObjectifMensuelQuerySet.as_manager()
+    history = HistoricalRecords()
 
     class Meta:
         ordering = ["-mois"]

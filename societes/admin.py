@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from simple_history.admin import SimpleHistoryAdmin
 
 from comptes.admin import AffectationSocieteInline
 
@@ -21,7 +22,7 @@ class ObjectifInline(admin.TabularInline):
 
 
 @admin.register(Societe)
-class SocieteAdmin(admin.ModelAdmin):
+class SocieteAdmin(SimpleHistoryAdmin):
     list_display = ("code", "nom", "libelle_ligne", "unite", "marge_defaut", "objectif_defaut", "actif", "ordre")
     list_editable = ("ordre", "actif")
     search_fields = ("code", "nom")
@@ -38,7 +39,7 @@ class SocieteAdmin(admin.ModelAdmin):
 
 
 @admin.register(Client)
-class ClientAdmin(admin.ModelAdmin):
+class ClientAdmin(SimpleHistoryAdmin):
     list_display = ("nom", "societe", "telephone", "email")
     list_filter = ("societe",)
     search_fields = ("nom", "email", "telephone")
@@ -68,7 +69,7 @@ class ClientAdmin(admin.ModelAdmin):
 
 
 @admin.register(ObjectifMensuel)
-class ObjectifMensuelAdmin(admin.ModelAdmin):
+class ObjectifMensuelAdmin(SimpleHistoryAdmin):
     list_display = ("societe", "mois", "montant")
     list_filter = ("societe",)
     date_hierarchy = "mois"

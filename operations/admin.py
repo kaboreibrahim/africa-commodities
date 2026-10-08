@@ -1,5 +1,6 @@
 from django.contrib import admin, messages
 from django.contrib.humanize.templatetags.humanize import intcomma
+from simple_history.admin import SimpleHistoryAdmin
 
 from . import services
 from .models import Ligne
@@ -10,7 +11,7 @@ def fcfa(v):
 
 
 @admin.register(Ligne)
-class LigneAdmin(admin.ModelAdmin):
+class LigneAdmin(SimpleHistoryAdmin):
     list_display = ("date", "societe", "reference", "projet", "client", "quantite", "marge_unitaire_f",
                     "marge_totale_f", "africa_commodities_f", "comptes_f")
     list_filter = ("societe", ("date", admin.DateFieldListFilter), "regle")

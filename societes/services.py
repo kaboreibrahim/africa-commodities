@@ -21,7 +21,8 @@ def _verifier_champs(donnees: dict) -> None:
         raise ValueError(f"Champ(s) non modifiable(s) : {', '.join(sorted(inconnus))}.")
 
 
-def _enregistrer_client(client: Client) -> Client:
+def _enregistrer_client(user, client: Client) -> Client:
+    client._history_user = user  # auteur de l'entrée d'historique, même hors requête HTTP
     client.nom = " ".join(client.nom.split())  # même nettoyage qu'à l'enregistrement, avant la validation
     client.full_clean()
     client.save()
@@ -31,7 +32,7 @@ def _enregistrer_client(client: Client) -> Client:
 def ajouter_client(user, societe, nom, **extra) -> Client:
     _verifier_champs(extra)
     _verifier_droit(user, societe, "ajouter_client")
-    return _enregistrer_client(Client(societe=societe, nom=nom, **extra))
+    return _enregistrer_client(user, Client(societe=societe, nom=nom, **extra))
 
 
 def modifier_client(user, client: Client, **donnees) -> Client:
@@ -39,8 +40,7 @@ def modifier_client(user, client: Client, **donnees) -> Client:
     _verifier_droit(user, client.societe_id, "modifier_client", client=client.pk)
     for champ, valeur in donnees.items():
         setattr(client, champ, valeur)
-    client._history_user = user
-    return _enregistrer_client(client)
+    return _enregistrer_client(user, client)
 
 
 def retirer_client(user, client: Client) -> None:
@@ -57,6 +57,7 @@ def definir_objectif(user, societe, mois, montant) -> ObjectifMensuel:
     objectif = (ObjectifMensuel.objects.filter(societe=societe, mois=mois).first()
                 or ObjectifMensuel(societe=societe, mois=mois))
     objectif.montant = montant
+    objectif._history_user = user
     objectif.full_clean()
     objectif.save()
     return objectif
