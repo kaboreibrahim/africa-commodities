@@ -2,6 +2,7 @@
 Mise en forme des données des graphiques (transmises au JavaScript par `json_script`).
 Aucun calcul métier ici : les montants viennent des sélecteurs, on ne fait que les présenter.
 """
+from datetime import date
 from decimal import Decimal
 
 from core.templatetags.format_fr import fcfa_court, mois_court, mois_long, pct
@@ -84,5 +85,53 @@ def donnees_tableau_de_bord(donnees: dict, societe) -> dict:
             "marges": [_entier(p["marge"]) for p in donnees["projets"]],
             "quantites": [p["quantite"] for p in donnees["projets"]],
             "unite": societe.unite,
+        },
+    }
+
+
+def nom_court(societe) -> str:
+    """Libellé court d'une société dans les graphiques (code, sauf noms courts lisibles)."""
+    return {"alon": "ALON Prop.", "mlp": "Mon Livreur Pro"}.get(societe.code, societe.code.upper())
+
+
+def donnees_groupe(synthese: list[dict], total: dict, marges_annee: dict, mois) -> dict:
+    """Données JSON des graphiques de la Vue Groupe."""
+    liste_mois = [date(mois.year, n, 1) for n in range(1, 13)]
+    total_ac = total["africa_commodities"] or 0
+    return {
+        "societes": {
+            "etiquettes": [nom_court(r["societe"]) + (" ✔" if r["objectif_atteint"] else "") for r in synthese],
+            "noms": [r["societe"].nom for r in synthese],
+            "marges": [_entier(r["marge"]) for r in synthese],
+            "objectifs": [_entier(r["objectif"]) for r in synthese],
+            "progressions": [float(r["progression"]) for r in synthese],
+            "couleurs": [r["societe"].couleur_serie for r in synthese],
+        },
+        "africaCommodities": {
+            "centre": fcfa_court(total_ac) or "0", "sousTitre": "Africa Com.",
+            "parts": [{"nom": r["societe"].nom, "code": r["societe"].code, "valeur": _entier(r["africa_commodities"]),
+                       "part": float(r["africa_commodities"] / total_ac * 100) if total_ac else 0.0,
+                       "couleur": r["societe"].couleur_serie} for r in synthese],
+        },
+        "charges": {
+            "etiquettes": [nom_court(r["societe"]) + (" ✔" if r["couverture"].couvert else
+                                                      " ⚠" if r["couverture"].depenses_saisies else "")
+                           for r in synthese],
+            "noms": [r["societe"].nom for r in synthese],
+            "parts": [_entier(r["charges"]) for r in synthese],
+            "depenses": [_entier(r["depenses"]) for r in synthese],
+            "ecarts": [_entier(r["couverture"].excedent - r["couverture"].reste_a_couvrir)
+                       if r["couverture"].depenses_saisies else None for r in synthese],
+        },
+        "mois": {
+            "etiquettes": [mois_court(m).capitalize() for m in liste_mois],
+            "titres": [mois_long(m) for m in liste_mois],
+            "selection": mois.month - 1,
+            "series": [{"nom": r["societe"].nom, "couleur": r["societe"].couleur_serie,
+                        "marges": [_entier(marges_annee.get(r["societe"].pk, {}).get(m)) for m in liste_mois]}
+                       for r in synthese],
+            # Tableau équivalent : une ligne par mois, une colonne par société.
+            "tableau": [{"titre": mois_long(m), "marges": [_entier(marges_annee.get(r["societe"].pk, {}).get(m))
+                                                           for r in synthese]} for m in liste_mois],
         },
     }

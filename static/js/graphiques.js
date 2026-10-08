@@ -181,7 +181,7 @@
           datasets: [{ type: "bar", label: "Marge", data: g.marges, backgroundColor: g.couleurs, borderRadius: 4, order: 2 }, {
             type: "line", label: "Objectif", data: g.objectifs, order: 1, showLine: false,
             borderColor: variable("--navy", "#1A2B4A"), backgroundColor: variable("--navy", "#1A2B4A"),
-            pointStyle: "line", pointRadius: 14, pointBorderWidth: 3, pointHoverRadius: 16, borderDash: [3, 2]
+            pointStyle: "line", rotation: 90, pointRadius: 14, pointBorderWidth: 3, pointHoverRadius: 16
           }]
         },
         options: Object.assign(optionsCommunes(), {
@@ -193,6 +193,36 @@
               title: function (items) { return items.length ? g.noms[items[0].dataIndex] : ""; },
               label: function (c) { return c.dataset.label + " : " + fcfa(c.parsed.x); },
               afterBody: function (items) { return items.length ? pct(g.progressions[items[0].dataIndex]) + " de l'objectif" : ""; }
+            } }
+          }
+        })
+      };
+    },
+    "groupe-charges": function (d) {
+      var c = d.charges;
+      return {
+        type: "bar",
+        data: {
+          labels: c.etiquettes,
+          datasets: [
+            { label: "Part charges", data: c.parts, backgroundColor: variable("--c-charges", "#2F6FB0"), borderRadius: 3 },
+            { label: "Dépenses", data: c.depenses, backgroundColor: "#4B5563", borderRadius: 3 }
+          ]
+        },
+        options: Object.assign(optionsCommunes(), {
+          indexAxis: "y",
+          scales: { x: axeMontants(), y: { grid: { display: false }, ticks: { color: variable("--navy") } } },
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: {
+              title: function (items) { return items.length ? c.noms[items[0].dataIndex] : ""; },
+              label: function (t) { return t.dataset.label + " : " + fcfa(t.parsed.x); },
+              footer: function (items) {
+                var e = items.length ? c.ecarts[items[0].dataIndex] : null;
+                if (e === null || e === undefined) { return "Dépenses non saisies"; }
+                return e >= 0 ? "✔ Excédent : " + fcfa(e) : "⚠ Reste à couvrir : " + fcfa(-e);
+              }
             } }
           }
         })

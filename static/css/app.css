@@ -409,3 +409,6 @@ progress.barre--charges { color: var(--c-charges); }
 }
 .badge-statut--ok { background: #E6F2E8; color: var(--vert-ok); border: 1px solid #B7D9BE; }
 .pastille--depenses { background: #4B5563; }
+
+/* Vue Groupe : 7 indicateurs sur une ligne en grand écran */
+@media (min-width: 1200px) { .kpis--7 { grid-template-columns: repeat(7, minmax(0, 1fr)); } }

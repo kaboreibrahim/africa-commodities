@@ -1,4 +1,172 @@
 {% extends "base.html" %}
-{% load format_fr %}
+{% load static format_fr %}
 {% block titre %}Vue Groupe{% endblock %}
-{% block contenu %}<section class="carte"><h2>Vue Groupe <small>— {{ mois|mois_long }}</small></h2></section>{% endblock %}
+{% block sous_titre %}Consolidation {% for r in synthese %}{{ r.societe.code|upper }}{% if not forloop.last %} · {% endif %}{% endfor %}{% endblock %}
+{% block scripts %}
+  <script src="{% static 'vendor/chart.umd.min.js' %}" defer></script>
+  <script src="{% static 'js/graphiques.js' %}" defer></script>
+{% endblock %}
+{% block contenu %}
+  <section class="kpis kpis--7" aria-label="Indicateurs du groupe – {{ mois|mois_long }}">
+    <div class="kpi">
+      <div class="kpi__l">Marge du groupe – {{ mois|mois_long }}</div>
+      <div class="kpi__v">{{ total.marge|fcfa }}</div>
+      <div class="kpi__s">Objectifs cumulés : {{ total.objectif|fcfa }}</div>
+      <progress class="barre" max="100" value="{% if total.progression > 100 %}100{% else %}{{ total.progression|floatformat:'0u' }}{% endif %}"
+                aria-label="Progression du groupe">{{ total.progression|pct }}</progress>
+      <div class="kpi__s">{{ total.progression|pct }} atteint</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Sociétés à l'objectif</div>
+      <div class="kpi__v">{{ total.a_l_objectif|length }} / {{ synthese|length }}</div>
+      <div class="kpi__s">{% for s in total.a_l_objectif %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% empty %}Aucune pour l'instant{% endfor %}</div>
+    </div>
+    <div class="kpi kpi--charges">
+      <div class="kpi__l">Sociétés aux charges couvertes</div>
+      <div class="kpi__v">{{ total.charges_couvertes|length }} / {{ synthese|length }}</div>
+      <div class="kpi__s">{% for s in total.charges_couvertes %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% empty %}Aucune pour l'instant{% endfor %}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Charges ({{ regle_pied.pct_charges|pct }})</div>
+      <div class="kpi__v">{{ total.charges|fcfa }}</div>
+      <div class="kpi__s">Dépenses saisies : {{ total.depenses|fcfa }}</div>
+    </div>
+    <div class="kpi kpi--ac">
+      <div class="kpi__l">Total Africa Commodities</div>
+      <div class="kpi__v texte-ac">{{ total.africa_commodities|fcfa }}</div>
+      <div class="kpi__s">Remontée à la tête du groupe</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Risques + Provision</div>
+      <div class="kpi__v">{{ total.risques_et_provision|fcfa }}</div>
+      <div class="kpi__s">Risques {{ total.risques|fcfa }} + provision {{ total.provision|fcfa }}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi__l">Comptes (disponible)</div>
+      <div class="kpi__v">{{ total.comptes|fcfa }}</div>
+      <div class="kpi__s">Cumul des {{ synthese|length }} sociétés</div>
+    </div>
+  </section>
+
+  <section class="carte">
+    <h2>Synthèse par société <small>— {{ mois|mois_long }}</small></h2>
+    <div class="cadre-tableau">
+      <table class="tableau">
+        <caption class="visuellement-cache">Synthèse par société pour {{ mois|mois_long }}</caption>
+        <thead><tr>
+          <th scope="col">Société</th><th scope="col" class="n">Quantité</th><th scope="col" class="n">Marge</th>
+          <th scope="col" class="n">Objectif</th><th scope="col">Progression</th><th scope="col" class="n">Charges</th>
+          <th scope="col" class="n">Africa Com.</th><th scope="col" class="n">Risques</th><th scope="col" class="n">Provision</th>
+          <th scope="col" class="n">Comptes</th><th scope="col" class="n">Dépenses</th><th scope="col">Couverture</th>
+          <th scope="col" class="n">Reste / Excédent</th>
+        </tr></thead>
+        <tbody>
+          {% for r in synthese %}{% with c=r.couverture s=r.societe %}
+            <tr class="ligne-cliquable" data-href="{% url 'interface:tableau' s.code %}">
+              <td><span class="cellule-societe"><span class="point serie-{{ s.code }}" aria-hidden="true"></span>
+                <a href="{% url 'interface:tableau' s.code %}">{{ s.nom }}</a></span></td>
+              <td class="n">{{ r.quantite|nombre }} <span class="unite">{{ s.unite }}{{ r.quantite|pluralize }}</span></td>
+              <td class="n"><strong>{{ r.marge|nombre }}</strong></td>
+              <td class="n">{{ r.objectif|nombre }}</td>
+              <td><progress class="barre barre--serie serie-{{ s.code }}" max="100"
+                            value="{% if r.progression > 100 %}100{% else %}{{ r.progression|floatformat:'0u' }}{% endif %}"
+                            aria-label="Progression {{ s.nom }}">{{ r.progression|pct }}</progress>
+                <span{% if r.objectif_atteint %} class="ok"{% endif %}>{{ r.progression|pct }}{% if r.objectif_atteint %} ✔<span class="visuellement-cache"> objectif atteint</span>{% endif %}</span></td>
+              <td class="n">{{ r.charges|nombre }}</td>
+              <td class="n texte-ac">{{ r.africa_commodities|nombre }}</td>
+              <td class="n">{{ r.risques|nombre }}</td>
+              <td class="n">{{ r.provision|nombre }}</td>
+              <td class="n">{{ r.comptes|nombre }}</td>
+              <td class="n">{% if c.depenses_saisies %}{{ r.depenses|nombre }}{% else %}—{% endif %}</td>
+              <td>{% if not c.depenses_saisies %}<span class="statut statut--neutre">non saisies</span>
+                {% elif c.couvert %}<span class="statut statut--ok">✔ {{ c.taux|pct }}</span>
+                {% else %}<span class="statut statut--alerte">⚠ {{ c.taux|pct }}</span>{% endif %}</td>
+              <td class="n">{% if not c.depenses_saisies %}—{% elif c.couvert %}<span class="statut statut--ok">+{{ c.excedent|nombre }}</span>
+                {% else %}<span class="statut statut--alerte">−{{ c.reste_a_couvrir|nombre }}</span>{% endif %}</td>
+            </tr>
+          {% endwith %}{% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>TOTAL GROUPE</td><td></td>
+            <td class="n">{{ total.marge|nombre }}</td><td class="n">{{ total.objectif|nombre }}</td>
+            <td>{{ total.progression|pct }}</td>
+            <td class="n">{{ total.charges|nombre }}</td><td class="n texte-ac">{{ total.africa_commodities|nombre }}</td>
+            <td class="n">{{ total.risques|nombre }}</td><td class="n">{{ total.provision|nombre }}</td>
+            <td class="n">{{ total.comptes|nombre }}</td><td class="n">{{ total.depenses|nombre }}</td>
+            <td>{% if total.taux_couverture is not None %}{{ total.taux_couverture|pct }}{% else %}—{% endif %}</td>
+            <td class="n">{% if total.depenses %}{% if total.ecart_charges >= 0 %}+{% endif %}{{ total.ecart_charges|nombre }}{% else %}—{% endif %}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="aide">Couverture = part charges ÷ dépenses du mois. ✔ charges couvertes · ⚠ reste à couvrir · « non saisies » : dépenses du mois pas encore renseignées.
+      La couverture du TOTAL GROUPE ne porte que sur les {{ total.nb_depenses_saisies }} société{{ total.nb_depenses_saisies|pluralize }} ayant saisi leurs dépenses
+      (part charges {{ total.charges_avec_depenses|fcfa }} pour {{ total.depenses|fcfa }} de dépenses).</p>
+  </section>
+
+  {{ graphiques|json_script:"donnees-groupe" }}
+
+  <div class="graphiques">
+    <section class="carte">
+      <h2>Marge comparée à l'objectif par société <small>— {{ mois|mois_long }}</small></h2>
+      <div class="graphique">
+        <canvas data-graphique="groupe-societes" data-source="donnees-groupe" role="img"
+                aria-label="Barres horizontales : marge de chaque société et objectif en pointillé (tableau de synthèse ci-dessus)"></canvas>
+      </div>
+      <p class="aide">Barre = marge du mois · trait = objectif de la société · ✔ objectif atteint.</p>
+    </section>
+
+    <section class="carte">
+      <h2>Versé à Africa Commodities <small>— {{ mois|mois_long }}</small></h2>
+      <div class="anneau">
+        <div class="graphique graphique--anneau">
+          {% if total.africa_commodities %}
+            <canvas data-graphique="groupe-ac" data-source="donnees-groupe" role="img"
+                    aria-label="Anneau : part de chaque société dans le total versé à Africa Commodities (détail ci-contre)"></canvas>
+          {% else %}<p class="graphique-vide">Aucune donnée sur la période</p>{% endif %}
+        </div>
+        <ul class="legende">
+          {% for p in graphiques.africaCommodities.parts %}
+            <li><span class="pastille pastille--serie serie-{{ p.code }}" aria-hidden="true"></span>
+              <span class="legende__nom">{{ p.nom }}</span><span class="legende__valeur">{{ p.valeur|fcfa }}</span>
+              <span class="legende__pct">{{ p.part|pct }}</span></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <section class="carte">
+    <h2>Charges réservées comparées aux dépenses par société <small>— {{ mois|mois_long }}</small></h2>
+    <div class="graphique">
+      <canvas data-graphique="groupe-charges" data-source="donnees-groupe" role="img"
+              aria-label="Barres horizontales : part charges et dépenses de chaque société, avec ✔ ou ⚠ (colonnes Couverture du tableau ci-dessus)"></canvas>
+    </div>
+    <ul class="legende legende--horizontale">
+      <li><span class="pastille pastille--charges" aria-hidden="true"></span>Part charges réservée sur la marge</li>
+      <li><span class="pastille pastille--depenses" aria-hidden="true"></span>Dépenses réelles saisies</li>
+    </ul>
+  </section>
+
+  <section class="carte">
+    <h2>Marge du groupe par mois <small>— {{ mois|date:"Y" }}</small></h2>
+    <div class="graphique graphique--haut">
+      <canvas data-graphique="groupe-mois" data-source="donnees-groupe" role="img"
+              aria-label="Barres empilées : marge de chaque société pour chaque mois de {{ mois|date:'Y' }} (tableau des données ci-dessous)"></canvas>
+    </div>
+    <ul class="legende legende--horizontale">
+      {% for r in synthese %}<li><span class="pastille pastille--serie serie-{{ r.societe.code }}" aria-hidden="true"></span>{{ r.societe.nom }}</li>{% endfor %}
+    </ul>
+    <details class="donnees">
+      <summary>Voir les données</summary>
+      <div class="cadre-tableau"><table class="tableau tableau--simple">
+        <caption class="visuellement-cache">Marge par mois et par société en {{ mois|date:"Y" }}</caption>
+        <thead><tr><th scope="col">Mois</th>{% for s in graphiques.mois.series %}<th scope="col" class="n">{{ s.nom }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for ligne in graphiques.mois.tableau %}
+          <tr><td>{{ ligne.titre }}</td>{% for v in ligne.marges %}<td class="n">{{ v|fcfa }}</td>{% endfor %}</tr>
+        {% endfor %}</tbody>
+      </table></div>
+    </details>
+  </section>
+{% endblock %}

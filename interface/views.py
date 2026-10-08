@@ -11,7 +11,8 @@ from django.views.generic import FormView, TemplateView
 
 from comptes import acces
 from core.templatetags.format_fr import fcfa, mois_long
-from operations.selectors import etat_du_mois, tableau_de_bord_societe
+from operations.selectors import (etat_du_mois, marges_par_mois_par_societe, synthese_groupe, tableau_de_bord_societe,
+                                  totaux_synthese)
 from repartition.models import RegleRepartition
 from repartition.services import calculer_repartition
 from operations.services import franchissements
@@ -157,8 +158,19 @@ class DepensesView(GestionSocieteMixin, FormView):
 
 
 class VueGroupeView(PageGroupeMixin, TemplateView):
+    """Vue Groupe consolidée (Admin groupe, Direction) : synthèse du mois et graphiques."""
+
     template_name = "interface/groupe.html"
     section = "groupe"
+
+    def get_context_data(self, **kwargs):
+        contexte = super().get_context_data(**kwargs)
+        synthese = synthese_groupe(self.mois, societes=self.onglets)
+        total = totaux_synthese(synthese)
+        marges_annee = marges_par_mois_par_societe(self.mois.year, societes=self.onglets)
+        contexte.update(synthese=synthese, total=total,
+                        graphiques=graphiques.donnees_groupe(synthese, total, marges_annee, self.mois))
+        return contexte
 
 
 class RegleView(InterfaceMixin, TemplateView):

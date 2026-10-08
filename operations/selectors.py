@@ -87,6 +87,14 @@ def _depenses_du_mois(societe, mois: date) -> Decimal:
     return montant or Decimal("0")
 
 
+def taux_couverture(part_charges, depenses) -> Decimal | None:
+    """Part charges ÷ dépenses × 100, à 1 décimale ; None si les dépenses ne sont pas saisies (= 0)."""
+    depenses = Decimal(depenses or 0)
+    if depenses <= 0:
+        return None
+    return (Decimal(part_charges or 0) / depenses * 100).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+
+
 def couverture_charges(societe, mois: date, *, marge, part_charges, quantite,
                        depenses=None, pct_charges=None) -> CouvertureCharges:
     """
@@ -108,7 +116,7 @@ def couverture_charges(societe, mois: date, *, marge, part_charges, quantite,
     couvert = saisies and part_charges >= depenses
     reste = max(Decimal("0"), depenses - part_charges)
     excedent = max(Decimal("0"), part_charges - depenses) if saisies else Decimal("0")
-    taux = (part_charges / depenses * 100).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP) if saisies else None
+    taux = taux_couverture(part_charges, depenses)
 
     marge_necessaire = arrondi_fcfa(depenses * 100 / Decimal(pct_charges)) if saisies and pct_charges else Decimal("0")
     marge_restante = max(Decimal("0"), marge_necessaire - marge)
@@ -375,3 +383,27 @@ def clients_avec_nb_lignes(societe: Societe):
     return (Client.objects.filter(societe=societe)
             .annotate(nb_lignes=Count("lignes", filter=Q(lignes__supprime_le__isnull=True)))
             .order_by("nom"))
+
+
+def totaux_synthese(synthese: list[dict]) -> dict:
+    """
+    Ligne TOTAL GROUPE de la synthèse : sommes des montants, progression globale,
+    sociétés à l'objectif et sociétés aux charges couvertes, taux de couverture global.
+    """
+    total = _totaux_vides()
+    for cle in [*CHAMPS_TOTAUX, "quantite", "nb_lignes"]:
+        total[cle] = sum((r[cle] for r in synthese), total[cle])
+    total["objectif"] = sum((r["objectif"] for r in synthese), Decimal("0"))
+    total["depenses"] = sum((r["depenses"] for r in synthese), Decimal("0"))
+    total["progression"] = _progression(total["marge"], total["objectif"])
+    total["a_l_objectif"] = [r["societe"] for r in synthese if r["objectif_atteint"]]
+    total["charges_couvertes"] = [r["societe"] for r in synthese if r["couverture"].couvert]
+    # Couverture globale : seulement les sociétés qui ont saisi leurs dépenses du mois (sinon leur part
+    # charges gonflerait artificiellement le taux du groupe).
+    avec_depenses = [r for r in synthese if r["couverture"].depenses_saisies]
+    total["nb_depenses_saisies"] = len(avec_depenses)
+    total["charges_avec_depenses"] = sum((r["charges"] for r in avec_depenses), Decimal("0"))
+    total["taux_couverture"] = taux_couverture(total["charges_avec_depenses"], total["depenses"])
+    total["ecart_charges"] = total["charges_avec_depenses"] - total["depenses"]  # + excédent / − reste à couvrir
+    total["risques_et_provision"] = total["risques"] + total["provision"]
+    return total
