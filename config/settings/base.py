@@ -69,6 +69,9 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
 
 AUTH_USER_MODEL = "comptes.Utilisateur"
 
+# Rôle « Saisie » : modification de ses propres lignes du mois en cours et des N mois précédents.
+SAISIE_FENETRE_MODIFICATION_MOIS = env.int("SAISIE_FENETRE_MODIFICATION_MOIS", default=1)
+
 # Argon2 en premier : hachage des mots de passe le plus robuste supporté par Django.
 PASSWORD_HASHERS = [
     "django.contrib.auth.hashers.Argon2PasswordHasher",

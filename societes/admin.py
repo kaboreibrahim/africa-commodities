@@ -1,5 +1,7 @@
 from django.contrib import admin
 
+from comptes.admin import AffectationSocieteInline
+
 from .models import Client, ObjectifMensuel, Societe
 
 
@@ -14,7 +16,7 @@ class SocieteAdmin(admin.ModelAdmin):
     list_display = ("code", "nom", "libelle_ligne", "unite", "marge_defaut", "objectif_defaut", "actif", "ordre")
     list_editable = ("ordre", "actif")
     search_fields = ("code", "nom")
-    inlines = [ObjectifInline]
+    inlines = [ObjectifInline, AffectationSocieteInline]
     fieldsets = (
         (None, {"fields": ("code", "nom", "actif", "ordre", "logo")}),
         ("Libellés de l'activité", {"fields": ("libelle_ligne", "libelle_ligne_pluriel", "libelle_reference",
