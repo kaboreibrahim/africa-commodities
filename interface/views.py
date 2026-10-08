@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render
 from django.views.generic import FormView, TemplateView
 
 from comptes import acces
-from core.templatetags.format_fr import fcfa, mois_long
+from core.templatetags.format_fr import de_mois, fcfa
 from operations.selectors import (etat_du_mois, marges_par_mois_par_societe, synthese_groupe, tableau_de_bord_societe,
                                   totaux_synthese)
 from repartition.models import RegleRepartition
@@ -111,7 +111,7 @@ class ObjectifView(GestionSocieteMixin, FormView):
         except ValidationError as erreur:
             form.add_error("montant", erreur.messages)
             return self.form_invalid(form)
-        message = f"Objectif de {mois_long(self.mois)} enregistré : {fcfa(form.cleaned_data['montant'])}."
+        message = f"Objectif {de_mois(self.mois)} enregistré : {fcfa(form.cleaned_data['montant'])}."
         if self.est_htmx:
             reponse = HttpResponse(status=204)
             return declencher(reponse, objectifModifie=True, toast=toast(message))
@@ -144,13 +144,13 @@ class DepensesView(GestionSocieteMixin, FormView):
             form.add_error("montant", erreur.messages)
             return self.form_invalid(form)
         seuils = franchissements(avant, etat_du_mois(self.societe, self.mois))
-        message = f"Dépenses de {mois_long(self.mois)} enregistrées : {fcfa(form.cleaned_data['montant'])}."
+        message = f"Dépenses {de_mois(self.mois)} enregistrées : {fcfa(form.cleaned_data['montant'])}."
         if self.est_htmx:
             reponse = declencher(HttpResponse(status=204), depensesModifiees=True, toast=toast(message))
             return declencher(reponse, **evenements_franchissement(seuils, self.societe, self.mois))
         messages.success(self.request, message)
         if "charges_couvertes" in seuils:
-            messages.success(self.request, f"✔ Charges {self.societe.code.upper()} de {mois_long(self.mois)} couvertes")
+            messages.success(self.request, f"✔ Charges {self.societe.code.upper()} {de_mois(self.mois)} couvertes")
         return redirect("interface:tableau", code_societe=self.societe.code)
 
     def form_invalid(self, form):

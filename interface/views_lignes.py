@@ -18,7 +18,7 @@ from django.utils.functional import cached_property
 from django.views.generic import TemplateView
 
 from comptes import acces
-from core.templatetags.format_fr import mois_long
+from core.templatetags.format_fr import de_mois
 from operations import services
 from operations.models import Ligne
 from operations.selectors import PERIODES, etat_du_mois, lignes_filtrees, projets_de_la_societe, totaux
@@ -77,10 +77,10 @@ class LignesMixin:
             return declencher(reponse, **evenements_franchissement(seuils, self.societe, mois))
         messages.success(self.request, message)
         if "objectif_atteint" in seuils:
-            messages.success(self.request, f"🎉 Objectif {self.societe.code.upper()} de {mois_long(mois)} atteint !",
+            messages.success(self.request, f"🎉 Objectif {self.societe.code.upper()} {de_mois(mois)} atteint !",
                              extra_tags="objectif")
         if "charges_couvertes" in seuils:
-            messages.success(self.request, f"✔ Charges {self.societe.code.upper()} de {mois_long(mois)} couvertes")
+            messages.success(self.request, f"✔ Charges {self.societe.code.upper()} {de_mois(mois)} couvertes")
         return reponse
 
 

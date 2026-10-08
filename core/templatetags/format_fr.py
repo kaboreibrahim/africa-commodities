@@ -111,3 +111,12 @@ def iso_mois(valeur) -> str:
 def majuscule_initiale(valeur) -> str:
     texte = str(valeur or "")
     return texte[:1].upper() + texte[1:]
+
+
+@register.filter
+def de_mois(valeur) -> str:
+    """date(2026, 10, 1) -> « d'octobre 2026 » ; date(2026, 3, 1) -> « de mars 2026 » (élision)."""
+    texte = mois_long(valeur)
+    if not texte:
+        return ""
+    return f"d'{texte}" if texte[0] in "aeiouy" else f"de {texte}"

@@ -4,7 +4,7 @@
   {% csrf_token %}
   {% if form.non_field_errors %}<ul class="erreurs-formulaire">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
   <div class="champ">
-    <label for="id_depenses_montant">Dépenses de {{ mois|mois_long }} (FCFA)</label>
+    <label for="id_depenses_montant">Dépenses {{ mois|de_mois }} (FCFA)</label>
     <input type="number" name="montant" id="id_depenses_montant" min="0" step="1000" inputmode="numeric"
            value="{{ form.montant.value|default_if_none:''|unlocalize }}" required
            aria-describedby="aide-depenses"{% if form.montant.errors %} aria-invalid="true"{% endif %}>

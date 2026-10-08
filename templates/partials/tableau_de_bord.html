@@ -5,7 +5,7 @@
   {% if ind.objectif_atteint %}
     <div class="bandeau" role="status">
       <span aria-hidden="true">🎉</span>
-      <span>Objectif de {{ mois|mois_long }} atteint : {{ ind.marge|fcfa }} pour un objectif de {{ ind.objectif|fcfa }}</span>
+      <span>Objectif {{ mois|de_mois }} atteint : {{ ind.marge|fcfa }} pour un objectif de {{ ind.objectif|fcfa }}</span>
     </div>
   {% endif %}
 
@@ -15,7 +15,7 @@
 
   <div class="parametres-mois">
     <div class="objectif-zone" id="zone-objectif">
-      <span>Objectif de {{ mois|mois_long }} : <span class="objectif-zone__valeur">{{ ind.objectif|fcfa }}</span></span>
+      <span>Objectif {{ mois|de_mois }} : <span class="objectif-zone__valeur">{{ ind.objectif|fcfa }}</span></span>
       {% if peut_gerer %}
         <a class="btn btn--secondaire btn--petit" href="{% url 'interface:objectif' societe.code %}"
            hx-get="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">Modifier l'objectif</a>
@@ -32,9 +32,9 @@
     </div>
   </div>
 
-  <section class="kpis" aria-label="Indicateurs de {{ mois|mois_long }}">
+  <section class="kpis" aria-label="Indicateurs {{ mois|de_mois }}">
     <div class="kpi">
-      <div class="kpi__l">Marge de {{ mois|mois_long }}</div>
+      <div class="kpi__l">Marge {{ mois|de_mois }}</div>
       <div class="kpi__v">{{ ind.marge|fcfa }}</div>
       <div class="kpi__s">Objectif : {{ ind.objectif|fcfa }}</div>
       <progress class="barre" max="100" value="{% if ind.progression > 100 %}100{% else %}{{ ind.progression|floatformat:'0u' }}{% endif %}"
@@ -109,7 +109,7 @@
       <details class="donnees">
         <summary>Voir les données</summary>
         <div class="cadre-tableau"><table class="tableau tableau--simple">
-          <caption class="visuellement-cache">Répartition de la marge de {{ mois|mois_long }}</caption>
+          <caption class="visuellement-cache">Répartition de la marge {{ mois|de_mois }}</caption>
           <thead><tr><th scope="col">Poste</th><th scope="col" class="n">Montant</th><th scope="col" class="n">Part</th></tr></thead>
           <tbody>{% for p in postes %}<tr><td>{{ p.nom }}</td><td class="n">{{ p.valeur|fcfa }}</td><td class="n">{{ p.part|pct }}</td></tr>{% endfor %}</tbody>
           <tfoot><tr><td>Marge</td><td class="n">{{ ind.marge|fcfa }}</td><td class="n">{% if ind.marge %}{{ 100|pct }}{% endif %}</td></tr></tfoot>
@@ -136,7 +136,7 @@
       <details class="donnees">
         <summary>Voir les données</summary>
         <div class="cadre-tableau"><table class="tableau tableau--simple">
-          <caption class="visuellement-cache">Progression vers l'objectif de {{ mois|mois_long }}</caption>
+          <caption class="visuellement-cache">Progression vers l'objectif {{ mois|de_mois }}</caption>
           <tbody>
             <tr><th scope="row">Marge du mois</th><td class="n">{{ ind.marge|fcfa }}</td></tr>
             <tr><th scope="row">Objectif</th><td class="n">{{ ind.objectif|fcfa }}</td></tr>

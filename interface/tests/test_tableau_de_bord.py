@@ -66,7 +66,7 @@ class TableauDeBordVueTests(JeuInterfaceMixin, TestCase):
         self.connecter(self.lecture_ooa)
         reponse = self.client.get(self.url())
         self.assertEqual(reponse.status_code, 200)
-        for texte in ("Marge de ", "Conteneurs du mois", "Couverture des charges (25", "Africa Commodities", "Risques + Provision",
+        for texte in ("Marge d", "Conteneurs du mois", "Couverture des charges (25", "Africa Commodities", "Risques + Provision",
                       "Comptes OOA (disponible)", "Voir les données", "≈ 8 conteneur(s) restant(s)"):
             self.assertContains(reponse, texte)
         donnees = json.loads(reponse.context["graphiques"] and json.dumps(reponse.context["graphiques"]))
@@ -132,7 +132,7 @@ class ObjectifVueTests(JeuInterfaceMixin, TestCase):
         self.assertEqual(reponse.status_code, 204)
         evenements = json.loads(reponse["HX-Trigger"])
         self.assertIn("objectifModifie", evenements)
-        self.assertIn("Objectif de", evenements["toast"]["message"])
+        self.assertIn("Objectif d", evenements["toast"]["message"])
         objectif = ObjectifMensuel.objects.get()
         self.assertEqual((objectif.mois, objectif.montant), (mois_decale(0), 2_500_000))
         self.assertEqual(objectif.history.first().history_user, self.responsable_ooa)

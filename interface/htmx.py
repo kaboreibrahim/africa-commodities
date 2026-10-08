@@ -3,7 +3,7 @@ import json
 
 from django.core.serializers.json import DjangoJSONEncoder
 
-from core.templatetags.format_fr import mois_long
+from core.templatetags.format_fr import de_mois, mois_long
 
 
 def est_htmx(request) -> bool:
@@ -34,8 +34,8 @@ def evenements_franchissement(seuils: set[str], societe, mois) -> dict:
     """
     evenements = {}
     if "objectif_atteint" in seuils:
-        evenements["objectifAtteint"] = {"societe": societe.code.upper(), "mois": mois_long(mois),
+        evenements["objectifAtteint"] = {"societe": societe.code.upper(), "mois": mois_long(mois), "deMois": de_mois(mois),
                                          "couleurs": [societe.couleur_principale, societe.couleur_accent]}
     if "charges_couvertes" in seuils:
-        evenements["chargesCouvertes"] = {"societe": societe.code.upper(), "mois": mois_long(mois)}
+        evenements["chargesCouvertes"] = {"societe": societe.code.upper(), "mois": mois_long(mois), "deMois": de_mois(mois)}
     return evenements

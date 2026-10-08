@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.contrib.sessions.backends.signed_cookies import SessionStore
 from django.test import RequestFactory, SimpleTestCase
 
-from core.templatetags.format_fr import fcfa, fcfa_court, iso_mois, mois_long, nombre, pct
+from core.templatetags.format_fr import de_mois, fcfa, fcfa_court, iso_mois, mois_long, nombre, pct
 from interface.periode import decaler, lire_mois, mois_courant, mois_depuis_requete
 from interface.theme import couleur_claire
 
@@ -45,6 +45,9 @@ class FiltresTests(SimpleTestCase):
         self.assertEqual(mois_long(date(2027, 2, 14)), "février 2027")
         self.assertEqual(mois_long("2026-10"), "")
         self.assertEqual(iso_mois(date(2026, 3, 1)), "2026-03")
+        self.assertEqual(de_mois(date(2026, 10, 1)), "d'octobre 2026")
+        self.assertEqual(de_mois(date(2026, 8, 1)), "d'août 2026")
+        self.assertEqual(de_mois(date(2026, 3, 1)), "de mars 2026")
 
 
 class PeriodeTests(SimpleTestCase):

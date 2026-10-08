@@ -174,7 +174,7 @@ class ConfettisTests(JeuInterfaceMixin, TestCase):
         self.connecter(self.saisie_ooa)
         reponse = self.client.post(reverse("interface:lignes", args=["ooa"]), donnees_ligne(), follow=True)
         self.assertContains(reponse, 'data-etiquettes="objectif"')
-        self.assertContains(reponse, "🎉 Objectif OOA de")
+        self.assertContains(reponse, "🎉 Objectif OOA d")
 
 
 class ListeTests(JeuInterfaceMixin, TestCase):

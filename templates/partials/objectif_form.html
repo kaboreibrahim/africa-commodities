@@ -3,7 +3,7 @@
       hx-post="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">
   {% csrf_token %}
   <div class="champ">
-    <label for="{{ form.montant.id_for_label }}">Objectif de {{ mois|mois_long }} (FCFA)</label>
+    <label for="{{ form.montant.id_for_label }}">Objectif {{ mois|de_mois }} (FCFA)</label>
     <input type="number" name="montant" id="{{ form.montant.id_for_label }}" min="0" step="10000" inputmode="numeric"
            value="{{ form.montant.value|default_if_none:''|unlocalize }}" required
            aria-describedby="aide-objectif"{% if form.montant.errors %} aria-invalid="true"{% endif %}>

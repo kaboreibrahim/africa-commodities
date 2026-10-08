@@ -127,7 +127,7 @@
   document.addEventListener("objectifAtteint", function (evt) {
     var d = evt.detail || {};
     celebrer({
-      message: "🎉 Objectif " + (d.societe || "") + " de " + (d.mois || "") + " atteint !",
+      message: "🎉 Objectif " + (d.societe || "") + " " + (d.deMois || "") + " atteint !",
       couleurs: d.couleurs
     });
   });
@@ -149,7 +149,7 @@
   document.addEventListener("chargesCouvertes", function (evt) {
     var d = evt.detail || {};
     // Simple notification : les confettis restent réservés à l'objectif.
-    afficherToast("✔ Charges " + (d.societe || "") + " de " + (d.mois || "") + " couvertes", "success");
+    afficherToast("✔ Charges " + (d.societe || "") + " " + (d.deMois || "") + " couvertes", "success");
   });
 
   /* ---------- Erreurs HTMX ---------- */

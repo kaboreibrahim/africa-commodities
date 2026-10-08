@@ -3,7 +3,7 @@
 {% block titre %}{{ societe.code|upper }} – Dépenses{% endblock %}
 {% block contenu %}
   <section class="carte">
-    <h2>Dépenses de {{ mois|mois_long }}</h2>
+    <h2>Dépenses {{ mois|de_mois }}</h2>
     <div id="zone-depenses">{% include "partials/depenses_form.html" %}</div>
   </section>
 {% endblock %}
