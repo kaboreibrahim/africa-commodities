@@ -52,20 +52,20 @@ class ClientsView(PageSocieteMixin, TemplateView):
                 client = services.ajouter_client(request.user, self.societe, **form.cleaned_data)
             except ValidationError as erreur:
                 form.ajouter_erreurs(erreur)
-        gabarit = "partials/client_rapide.html" if rapide else "partials/clients.html"
+        # Ajout rapide (page de saisie) ou fenêtre « Nouveau client » (page Clients) : deux fragments de formulaire.
+        gabarit = "partials/client_rapide.html" if rapide else "partials/client_ajout.html"
         if client is None:
             if not self.est_htmx:
                 return self.render_to_response(self.get_context_data(form=form), status=422)
-            contexte = self.get_context_data(form=form) if not rapide else {"form": form, "societe": self.societe}
-            return TemplateResponse(request, gabarit, contexte, status=422)
+            return TemplateResponse(request, gabarit, {"form": form, "societe": self.societe}, status=422)
         message = f"Client ajouté : {client.nom}"
         if not self.est_htmx:
             messages.success(request, message)
             return redirect(request.POST.get("retour") or request.path)
-        contexte = (self.get_context_data() if not rapide
-                    else {"form": ClientForm(auto_id="rapide_%s"), "societe": self.societe})
-        return declencher(TemplateResponse(request, gabarit, contexte),
-                          clientsModifies={"id": client.pk, "nom": client.nom}, toast=toast(message))
+        vierge = ClientForm(auto_id="rapide_%s" if rapide else "client_%s")
+        reponse = declencher(TemplateResponse(request, gabarit, {"form": vierge, "societe": self.societe}),
+                             clientsModifies={"id": client.pk, "nom": client.nom}, toast=toast(message))
+        return reponse if rapide else declencher(reponse, fermerDialogue=True)  # la fenêtre se referme, la liste se rafraîchit
 
 
 class ClientMixin:

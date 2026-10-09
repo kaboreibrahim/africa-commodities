@@ -1,15 +1,11 @@
 {% load format_fr %}
-<section class="carte" id="clients">
+<section class="carte" id="clients" hx-get="{% url 'interface:clients' societe.code %}{% if q %}?q={{ q|urlencode }}{% endif %}"
+         hx-trigger="clientsModifies from:body" hx-swap="outerHTML">
   <h2>Clients — {{ societe.nom }} <small>{{ clients|length }} client{{ clients|length|pluralize }}{% if q %} trouvé{{ clients|length|pluralize }}{% endif %}</small></h2>
   {% if peut_gerer %}
-    <form class="ajout-rapide no-print" method="post" action="{% url 'interface:clients' societe.code %}"
-          hx-post="{% url 'interface:clients' societe.code %}" hx-target="#clients" hx-swap="outerHTML">
-      {% csrf_token %}
-      {% include "partials/champ.html" with champ=form.nom %}
-      {% include "partials/champ.html" with champ=form.telephone %}
-      {% include "partials/champ.html" with champ=form.email %}
-      <button type="submit"><span class="ico ico-plus" aria-hidden="true"></span>Ajouter le client</button>
-    </form>
+    <p class="actions-page no-print">
+      <a class="btn" href="?nouveau=1" data-ouvrir-dialogue="dialogue-client-ajout"><span class="ico ico-plus" aria-hidden="true"></span>Nouveau client</a>
+    </p>
   {% endif %}
 
   <form class="filtres no-print" method="get" action="{% url 'interface:clients' societe.code %}" role="search"

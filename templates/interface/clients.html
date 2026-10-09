@@ -3,6 +3,11 @@
 {% block contenu %}
   {% include "partials/_actions_societe.html" %}
   {% include "partials/clients.html" %}
+  {% if peut_gerer %}
+    <dialog class="dialogue" id="dialogue-client-ajout" aria-labelledby="titre-client-ajout"{% if request.GET.nouveau or form.is_bound %} data-ouvrir-auto{% endif %}>
+      <div class="dialogue__corps">{% include "partials/client_ajout.html" %}</div>
+    </dialog>
+  {% endif %}
   <dialog class="dialogue" id="dialogue-client" aria-labelledby="titre-dialogue">
     <div id="dialogue-contenu"></div>
   </dialog>

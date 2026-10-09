@@ -1,0 +1,17 @@
+<form id="form-client" class="form-saisie no-print" method="post" action="{% url 'interface:clients' societe.code %}"
+      hx-post="{% url 'interface:clients' societe.code %}" hx-target="this" hx-swap="outerHTML">
+  {% csrf_token %}
+  <div class="dialogue__entete">
+    <h2 id="titre-client-ajout">Nouveau client</h2>
+    <button type="button" class="btn btn--secondaire btn--petit" data-fermer-dialogue aria-label="Fermer"><span class="ico ico-fermer" aria-hidden="true"></span></button>
+  </div>
+  <div class="formulaire">
+    {% include "partials/champ.html" with champ=form.nom %}
+    {% include "partials/champ.html" with champ=form.telephone %}
+    {% include "partials/champ.html" with champ=form.email %}
+  </div>
+  <div class="formulaire__actions">
+    <button type="submit"><span class="ico ico-plus" aria-hidden="true"></span>Enregistrer</button>
+    <button type="button" class="btn btn--secondaire" data-fermer-dialogue>Annuler</button>
+  </div>
+</form>

@@ -7,6 +7,13 @@
 
   <nav aria-label="Navigation principale">
     <ul class="lateral__nav">
+      {% if voit_groupe %}
+        <li>
+          <a class="lateral__lien" href="{% url 'interface:groupe' %}" {% if not societe and section == 'groupe' %}aria-current="page"{% endif %}>
+            <span class="ico ico-groupe" aria-hidden="true"></span>Vue Groupe
+          </a>
+        </li>
+      {% endif %}
       <li>
         <p class="lateral__titre" id="titre-societes">Sociétés</p>
         <nav class="onglets" id="onglets" aria-labelledby="titre-societes"
@@ -15,13 +22,6 @@
           {% include "partials/onglets.html" %}
         </nav>
       </li>
-      {% if voit_groupe %}
-        <li>
-          <a class="lateral__lien" href="{% url 'interface:groupe' %}" {% if not societe and section == 'groupe' %}aria-current="page"{% endif %}>
-            <span class="ico ico-groupe" aria-hidden="true"></span>Vue Groupe
-          </a>
-        </li>
-      {% endif %}
       <li>
         <a class="lateral__lien" href="{% url 'interface:regle' %}" {% if section == 'regle' %}aria-current="page"{% endif %}>
           <span class="ico ico-regle" aria-hidden="true"></span>Règle de répartition

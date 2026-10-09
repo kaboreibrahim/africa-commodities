@@ -1,3 +1,5 @@
+import json
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -106,3 +108,45 @@ class BoutonsDeLaSocieteTests(JeuInterfaceMixin, TestCase):
         self.connecter(self.saisie_ooa)
         self.assertNotContains(self.client.get(reverse("interface:tableau", args=["ooa"])),
                                reverse("interface:corbeille", args=["ooa"]))
+
+
+class ClientEnFenetreModaleTests(JeuInterfaceMixin, TestCase):
+    def url(self):
+        return reverse("interface:clients", args=["ooa"])
+
+    def test_page_avec_bouton_et_fenetre(self):
+        self.connecter(self.responsable_ooa)
+        reponse = self.client.get(self.url())
+        self.assertContains(reponse, 'data-ouvrir-dialogue="dialogue-client-ajout"')
+        self.assertContains(reponse, 'id="dialogue-client-ajout"')
+        self.assertNotContains(reponse, "ajout-rapide")  # plus de formulaire en ligne
+        self.connecter(self.lecture_ooa)
+        self.assertNotContains(self.client.get(self.url()), "dialogue-client-ajout")
+
+    def test_ajout_htmx_ferme_la_fenetre_et_rafraichit_la_liste(self):
+        self.connecter(self.responsable_ooa)
+        reponse = self.client.post(self.url(), {"nom": "NOUVEAU CLIENT"}, **HTMX)
+        declencheurs = json.loads(reponse["HX-Trigger"])
+        self.assertTrue(declencheurs["fermerDialogue"])
+        self.assertIn("clientsModifies", declencheurs)
+        self.assertContains(reponse, 'id="form-client"')  # formulaire vierge pour la fois suivante
+        self.assertTrue(Client.objects.filter(societe=self.ooa, nom="NOUVEAU CLIENT").exists())
+
+    def test_erreur_htmx_garde_la_fenetre_ouverte(self):
+        self.connecter(self.responsable_ooa)
+        reponse = self.client.post(self.url(), {"nom": ""}, **HTMX)
+        self.assertEqual(reponse.status_code, 422)
+        self.assertContains(reponse, 'id="form-client"', status_code=422)
+        self.assertNotIn("HX-Trigger", reponse)
+
+    def test_sans_javascript_la_fenetre_se_rouvre_avec_les_erreurs(self):
+        self.connecter(self.responsable_ooa)
+        reponse = self.client.post(self.url(), {"nom": ""})
+        self.assertContains(reponse, "data-ouvrir-auto", status_code=422)
+
+
+class MenuTests(JeuInterfaceMixin, TestCase):
+    def test_vue_groupe_en_premier_dans_le_menu(self):
+        self.connecter(self.admin_groupe)
+        menu = self.client.get(reverse("interface:tableau", args=["ooa"])).content.decode().split('id="menu-lateral"')[1]
+        self.assertLess(menu.index("Vue Groupe"), menu.index("Sociétés"))
