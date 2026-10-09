@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block titre %}Nouvel utilisateur{% endblock %}
 {% block sous_titre %}Administration — nouvel utilisateur{% endblock %}
+{% load static %}
+{% block scripts %}<script src="{% static 'js/habilitations.js' %}" defer></script>{% endblock %}
 {% block contenu %}
   {% include "partials/hab_nav.html" %}
   <form method="post" action="{% url 'interface:habilitation_nouveau' %}">

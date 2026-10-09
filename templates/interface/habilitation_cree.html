@@ -1,12 +1,16 @@
 {% extends "base.html" %}
 {% block titre %}Compte créé{% endblock %}
 {% block sous_titre %}Administration — compte créé{% endblock %}
+{% load static %}
+{% block scripts %}<script src="{% static 'js/habilitations.js' %}" defer></script>{% endblock %}
 {% block contenu %}
   {% include "partials/hab_nav.html" %}
   <section class="carte" aria-labelledby="titre-cree">
     <h2 id="titre-cree">Compte créé : {{ nouveau.get_full_name }} <small>{{ nouveau.email }}</small></h2>
     <p class="alerte">Mot de passe provisoire — affiché une seule fois, à transmettre par un canal sûr. Il devra être changé à la première connexion.</p>
-    <p class="mot-de-passe-provisoire"><code>{{ mot_de_passe }}</code></p>
+    <p class="mot-de-passe-provisoire"><code id="mot-de-passe-provisoire">{{ mot_de_passe }}</code>
+      <button type="button" class="btn btn--secondaire" data-copier="#mot-de-passe-provisoire"><span class="ico ico-copier" aria-hidden="true"></span><span data-copier-texte>Copier</span></button></p>
+    <p class="aide">Ce mot de passe ne sera plus jamais affiché. Ne fermez pas cette page avant de l'avoir transmis par un canal sûr.</p>
     <div class="formulaire__actions">
       <a class="btn" href="{% url 'interface:habilitation_fiche' nouveau.pk %}">Voir ses habilitations</a>
       <a class="btn btn--secondaire" href="{% url 'interface:habilitation_nouveau' %}">Créer un autre compte</a>

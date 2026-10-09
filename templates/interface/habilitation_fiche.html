@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block titre %}Habilitations de {{ cible.get_full_name|default:cible.username }}{% endblock %}
 {% block sous_titre %}Administration — habilitations{% endblock %}
+{% load static %}
+{% block scripts %}<script src="{% static 'js/habilitations.js' %}" defer></script>{% endblock %}
 {% block contenu %}
   {% include "partials/hab_nav.html" %}
 
@@ -16,38 +18,13 @@
     </p>
   </section>
 
-  <section class="carte apercu-droits" aria-labelledby="titre-apercu">
-    <h2 id="titre-apercu">Ce que voit cette personne</h2>
-    {% if not apercu.compte_actif %}<p class="alerte">Compte désactivé : aucun accès, quelles que soient les habilitations ci-dessous.</p>{% endif %}
-    <p><strong>Pages :</strong> {% for p in apercu.pages %}{{ p }}{% if not forloop.last %} · {% endif %}{% endfor %}</p>
-    <div class="cadre-tableau">
-      <table class="tableau tableau--simple">
-        <caption class="visuellement-cache">Droits de la personne sur chaque société</caption>
-        <thead><tr><th scope="col">Société</th><th scope="col">Rôle</th><th scope="col">Ce qu'elle peut faire</th></tr></thead>
-        <tbody>
-          {% for l in apercu.lignes %}
-            <tr><th scope="row"><span class="cellule-societe"><span class="point serie-{{ l.societe.code }}" aria-hidden="true"></span>{{ l.societe.nom }}</span></th>
-              <td><span class="lettre lettre--{% if l.role == '—' %}aucun{% else %}{{ l.role }}{% endif %}">{{ l.role }}</span></td><td>{{ l.actions }}</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    <p>
-      <strong>Vue Groupe :</strong>
-      {% if not apercu.voit_groupe %}non
-      {% elif apercu.admin %}oui, toutes les sociétés (administrateur groupe)
-      {% elif apercu.portee_toutes %}oui, toutes les sociétés (y compris les futures){% if apercu.detail_groupe %}, avec accès au détail en lecture seule{% endif %}
-      {% else %}oui, {{ apercu.societes_groupe|length }} société{{ apercu.societes_groupe|length|pluralize }} :
-        {% for s in apercu.societes_groupe %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if apercu.detail_groupe %}, avec accès au détail en lecture seule{% endif %}
-      {% endif %}
-    </p>
-    {% if apercu.mfa_obligatoire and not mfa %}<p class="alerte">2FA obligatoire pour ces habilitations : la personne sera invitée à l'activer à sa prochaine connexion.</p>{% endif %}
-    {% if apercu.expirations %}<p><strong>Expirations :</strong> {{ apercu.expirations|join:" · " }}</p>{% endif %}
-  </section>
 
+  <div class="fiche-hab">
+  <div class="fiche-hab__formulaires">
   <section class="carte" aria-labelledby="titre-acces">
     <h2 id="titre-acces">Accès par société</h2>
-    <form method="post" action="{% url 'interface:habilitation_fiche' cible.pk %}">
+    <form method="post" id="form-acces-fiche" action="{% url 'interface:habilitation_fiche' cible.pk %}"
+          hx-post="{% url 'interface:habilitation_fiche' cible.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML">
       {% csrf_token %}
       <input type="hidden" name="bloc" value="acces">
       {% include "partials/hab_acces.html" %}
@@ -58,7 +35,8 @@
 
   <section class="carte" aria-labelledby="titre-groupe">
     <h2 id="titre-groupe">Vue Groupe</h2>
-    <form method="post" action="{% url 'interface:habilitation_fiche' cible.pk %}">
+    <form method="post" id="form-groupe-fiche" action="{% url 'interface:habilitation_fiche' cible.pk %}"
+          hx-post="{% url 'interface:habilitation_fiche' cible.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML">
       {% csrf_token %}
       <input type="hidden" name="bloc" value="vue_groupe">
       {% include "partials/hab_groupe.html" %}
@@ -93,4 +71,13 @@
     {% endif %}
     <p class="aide">Désactiver un compte ferme immédiatement ses sessions. Pour réinitialiser la 2FA d'une personne, supprimez son authentificateur dans l'administration Django (action journalisée).</p>
   </section>
+  </div>
+  <aside class="fiche-hab__apercu" aria-label="Aperçu des droits">
+    {% include "partials/_apercu_droits.html" %}
+  </aside>
+  </div>
+
+  <dialog class="dialogue" id="dialogue-hab" aria-labelledby="titre-confirmation">
+    <div id="dialogue-contenu"></div>
+  </dialog>
 {% endblock %}

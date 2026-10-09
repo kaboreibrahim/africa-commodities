@@ -1,0 +1,38 @@
+<section class="carte apercu-droits" id="apercu-droits" aria-labelledby="titre-apercu" aria-live="polite"
+         hx-get="{% url 'interface:habilitation_apercu' cible.pk %}" hx-swap="outerHTML"
+         hx-trigger="change from:#form-acces-fiche, change from:#form-groupe-fiche"
+         hx-include="#form-acces-fiche, #form-groupe-fiche">
+  <h2 id="titre-apercu">Ce que voit cette personne</h2>
+  {% if brouillon %}<p class="etiquette etiquette--brouillon">Aperçu avec vos modifications (non enregistrées)</p>{% endif %}
+  {% if invalide %}<p class="aide">Le formulaire contient des erreurs : l'aperçu montre les habilitations enregistrées.</p>{% endif %}
+  {% if not apercu.compte_actif %}<p class="alerte">Compte désactivé : aucun accès, quelles que soient les habilitations.</p>{% endif %}
+
+  <p class="libelle">Pages</p>
+  <ul class="pages-visibles">{% for p in apercu.pages %}<li>{{ p }}</li>{% endfor %}</ul>
+
+  <p class="libelle">Sociétés</p>
+  <ul class="droits-societes">
+    {% for l in apercu.lignes %}
+      <li>
+        <span class="cellule-societe"><span class="point serie-{{ l.societe.code }}" aria-hidden="true"></span>{{ l.societe.code|upper }}</span>
+        <span class="lettre lettre--{% if l.role == '—' %}aucun{% else %}{{ l.role }}{% endif %}">{{ l.role }}</span>
+        <span class="droits-societes__texte">{{ l.actions }}</span>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <p class="libelle">Vue Groupe</p>
+  <p>
+    {% if not apercu.voit_groupe %}Non.
+    {% elif apercu.admin %}Oui, toutes les sociétés (administrateur groupe).
+    {% elif apercu.portee_toutes %}Oui, toutes les sociétés (y compris les futures){% if apercu.detail_groupe %}, avec accès au détail en lecture seule{% endif %}.
+    {% else %}Oui, {{ apercu.societes_groupe|length }} société{{ apercu.societes_groupe|length|pluralize }} :
+      {% for s in apercu.societes_groupe %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if apercu.detail_groupe %}, avec accès au détail en lecture seule{% endif %}.
+    {% endif %}
+  </p>
+  {% if apercu.mfa_obligatoire and not mfa %}<p class="encadre-info"><span class="ico ico-info" aria-hidden="true"></span><span>2FA obligatoire pour ces habilitations : la personne sera invitée à l'activer à sa prochaine connexion.</span></p>{% endif %}
+  {% if apercu.expirations %}
+    <p class="libelle">Expirations</p>
+    <ul class="pages-visibles">{% for e in apercu.expirations %}<li>{{ e }}</li>{% endfor %}</ul>
+  {% endif %}
+</section>

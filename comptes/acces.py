@@ -92,6 +92,25 @@ def _droits(user) -> _Droits:
     return droits
 
 
+def simuler(user, affectations: dict, portee: str | None = None, societes=(), detail: bool = False):
+    """
+    Aperçu « et si » : place sur `user` (objet en mémoire, jamais enregistré) des habilitations hypothétiques.
+    `affectations` : {id société: rôle} ; `portee` : « toutes » / « selection » / None (pas de Vue Groupe).
+    Toutes les fonctions de ce module répondent ensuite comme si ces habilitations étaient en vigueur.
+    """
+    groupe = None if portee is None else _PorteeGroupe(portee=portee, detail=bool(detail), societes=frozenset(societes))
+    user._droits_cache = _Droits(dict(affectations), groupe)
+    return user
+
+
+def detail_vue_groupe(user) -> bool:
+    """Vrai si l'habilitation Vue Groupe en vigueur autorise le détail (jamais pour l'admin, qui voit déjà tout)."""
+    if not _est_actif(user) or est_admin_groupe(user):
+        return False
+    groupe = _droits(user).groupe
+    return bool(groupe and groupe.detail)
+
+
 def vider_cache(user) -> None:
     """À appeler si les habilitations d'un utilisateur changent pendant une même requête."""
     user.__dict__.pop("_droits_cache", None)

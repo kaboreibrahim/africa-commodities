@@ -523,6 +523,25 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
 .cases-societes { display: flex; flex-wrap: wrap; gap: 4px 18px; }
 .hab-groupe fieldset { border: 0; padding: 0; margin: 10px 0; }
 .hab-groupe legend { padding: 0; }
+/* Fiche d'un utilisateur : formulaires à gauche, aperçu des droits qui reste visible à droite */
+.fiche-hab { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 18px; align-items: start; }
+.fiche-hab__apercu { position: sticky; top: calc(var(--hauteur-barre) + 16px); }
+.apercu-droits .libelle { margin: 12px 0 4px; }
+.apercu-droits p { margin: 0 0 6px; }
+.pages-visibles { margin: 0 0 6px; padding-left: 18px; }
+.droits-societes { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.droits-societes li { display: grid; grid-template-columns: 62px 30px 1fr; align-items: center; gap: 8px; font-size: 13px; }
+.droits-societes__texte { color: var(--gris); }
+.etiquette--brouillon { background: #FBF5E6; color: var(--acr-encre); border: 1px dashed var(--acr-or); margin: 0 0 6px; }
+@media (max-width: 1100px) { .fiche-hab { grid-template-columns: 1fr; } .fiche-hab__apercu { position: static; } }
+.hab-groupe input:disabled { cursor: not-allowed; }
+.hab-groupe .case:has(input:disabled) { opacity: .55; }
+
+/* Matrice : en-tête et première colonne figés au défilement */
+.cadre-matrice { max-height: 70vh; overflow: auto; }
+.matrice thead th { position: sticky; top: 0; z-index: 2; background: var(--c-claire); }
+.matrice th[scope="row"] { position: sticky; left: 0; z-index: 1; background: var(--blanc); box-shadow: 1px 0 0 var(--bord); }
+.matrice thead th:first-child { left: 0; z-index: 3; }
 .lettre { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 6px; font-weight: 700; font-size: 13px; border: 1px solid transparent; }
 .lettre--A, .lettre--T { background: var(--c-principale); color: var(--blanc); }
 .lettre--R { background: #DCEFE0; color: #14522A; border-color: #14522A; }

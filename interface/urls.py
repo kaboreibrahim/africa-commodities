@@ -16,6 +16,7 @@ urlpatterns = [
     path("administration/habilitations/nouveau/", views_habilitations.NouvelUtilisateurView.as_view(),
          name="habilitation_nouveau"),
     path("administration/habilitations/<int:pk>/", views_habilitations.FicheView.as_view(), name="habilitation_fiche"),
+    path("administration/habilitations/<int:pk>/apercu/", views_habilitations.ApercuDroitsView.as_view(), name="habilitation_apercu"),
     path("s/<slug:code_societe>/", views.TableauDeBordView.as_view(), name="tableau"),
     path("s/<slug:code_societe>/objectif/", views.ObjectifView.as_view(), name="objectif"),
     path("s/<slug:code_societe>/depenses/", views.DepensesView.as_view(), name="depenses"),

@@ -162,6 +162,10 @@ class FicheView(AdminHabilitationsMixin, TemplateView):
         else:
             formulaire = VueGroupeForm(request.POST)
         if not formulaire.is_valid():
+            if self.est_htmx:  # la fenêtre de confirmation affiche les erreurs
+                erreurs = [e for liste in formulaire.errors.values() for e in liste]
+                return render(request, "partials/_message_dialogue.html",
+                              {"titre": "Corrigez les erreurs", "messages_dialogue": erreurs, "erreur": True}, status=422)
             contexte = self.get_context_data(liees={bloc: formulaire})
             return self.render_to_response(contexte, status=422)
 
@@ -175,6 +179,9 @@ class FicheView(AdminHabilitationsMixin, TemplateView):
             textes = [changement.texte] if changement else []
             motif_obligatoire = True
         if not plan:
+            if self.est_htmx:
+                return render(request, "partials/_message_dialogue.html",
+                              {"titre": "Aucun changement", "messages_dialogue": ["Rien à enregistrer : les habilitations sont déjà ainsi."]})
             messages.info(request, "Aucun changement à enregistrer.")
             return redirect("interface:habilitation_fiche", pk=self.cible.pk)
 
@@ -199,7 +206,29 @@ class FicheView(AdminHabilitationsMixin, TemplateView):
                   if nom not in ("csrfmiddlewaretoken", "etape", "motif") for valeur in valeurs]
         contexte = self.get_context_data(liees={})
         contexte.update(textes=textes, champs=champs, motif=motif, erreur_motif=erreur, motif_obligatoire=motif_obligatoire)
-        return render(request, "interface/habilitation_confirmation.html", contexte, status=422 if erreur else 200)
+        gabarit = "partials/_confirmation.html" if self.est_htmx else "interface/habilitation_confirmation.html"
+        return render(request, gabarit, contexte, status=422 if erreur else 200)
+
+
+class ApercuDroitsView(AdminHabilitationsMixin, TemplateView):
+    """Fragment HTMX : « Ce que voit cette personne » avec les modifications en cours de saisie (rien n'est enregistré)."""
+
+    template_name = "partials/_apercu_droits.html"
+
+    @cached_property
+    def cible(self):
+        return get_object_or_404(Utilisateur, pk=self.kwargs["pk"])
+
+    def get_context_data(self, **kwargs):
+        contexte = super().get_context_data(**kwargs)
+        form_acces, form_groupe = AccesSocietesForm(self.request.GET), VueGroupeForm(self.request.GET)
+        if form_acces.is_valid() & form_groupe.is_valid():
+            simulation = logique.simulation_depuis_formulaires(form_acces, form_groupe)
+            contexte.update(apercu=logique.apercu_droits(self.cible, simulation), brouillon=True)
+        else:
+            contexte.update(apercu=logique.apercu_droits(self.cible), brouillon=False, invalide=True)
+        contexte.update(cible=self.cible, mfa=Authenticator.objects.filter(user=self.cible, type=Authenticator.Type.TOTP).exists())
+        return contexte
 
 
 # --- Matrice --------------------------------------------------------------------------------------

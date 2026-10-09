@@ -13,7 +13,7 @@ from comptes.tests.jeu import ReinitialiserAxesMixin, activer_totp, creer_utilis
 from interface import habilitations as logique
 from societes.models import Societe
 
-from .outils import JeuInterfaceMixin
+from .outils import HTMX, JeuInterfaceMixin
 from .test_qualite import AnalyseurCSP
 
 E = JournalSecurite.Evenement
@@ -284,3 +284,49 @@ class CommandesTests(EcranBase):
         self.assertTrue(any("cible@exemple.ci" in l and ";ooa;" in l and "Remplacement" in l for l in lignes))
         self.assertFalse(any("cible@exemple.ci" in l and ";anl;" in l for l in lignes))
         self.assertTrue(any("direction@exemple.ci" in l and "Vue Groupe" in l and "toutes les sociétés" in l for l in lignes))
+
+
+class ApercuEnDirectTests(EcranBase):
+    def url_apercu(self):
+        return reverse("interface:habilitation_apercu", args=[self.cible.pk])
+
+    def test_apercu_avec_modifications_non_enregistrees(self):
+        donnees = self.donnees_acces(mlp="saisie")
+        donnees.update(autoriser="on", portee="selection", societes=["ooa", "anl"], detail_autorise="on")
+        reponse = self.client.get(self.url_apercu(), donnees, **HTMX)
+        self.assertContains(reponse, "non enregistrées")
+        self.assertContains(reponse, "OOA, ANL")
+        self.assertContains(reponse, "avec accès au détail en lecture seule")
+        self.assertContains(reponse, "Lire et saisir")
+        # rien n'a été écrit
+        self.assertFalse(Affectation.objects.filter(utilisateur=self.cible).exists())
+        self.assertFalse(HabilitationVueGroupe.objects.filter(utilisateur=self.cible).exists())
+
+    def test_apercu_simule_avec_acces_py(self):
+        donnees = self.donnees_acces(ooa="responsable")
+        reponse = self.client.get(self.url_apercu(), donnees, **HTMX)
+        self.assertContains(reponse, "Lire, saisir, gérer")
+        self.assertContains(reponse, "2FA obligatoire")  # Responsable sans 2FA
+
+    def test_apercu_ignore_une_habilitation_expiree(self):
+        hier = (timezone.localdate() - timedelta(days=1)).isoformat()
+        donnees = self.donnees_acces(ooa="saisie")
+        donnees["fin_ooa"] = hier
+        reponse = self.client.get(self.url_apercu(), donnees, **HTMX)
+        self.assertNotContains(reponse, "Lire et saisir")
+
+    def test_apercu_reserve_a_l_admin(self):
+        self.connecter(self.saisie_ooa)
+        with self.assertLogs("securite", "WARNING"):
+            self.assertEqual(self.client.get(self.url_apercu()).status_code, 404)
+
+    def test_confirmation_htmx_en_fragment(self):
+        reponse = self.client.post(self.fiche, self.donnees_acces(mlp="saisie"), **HTMX)
+        self.assertContains(reponse, "donner Saisie sur MLP")
+        self.assertNotContains(reponse, "<html")
+        reponse = self.client.post(self.fiche, {"bloc": "vue_groupe", "autoriser": "on", "portee": "selection",
+                                                "societes": ["ooa"]}, **HTMX)
+        self.assertContains(reponse, "au moins 2 sociétés", status_code=422)
+        self.assertNotContains(reponse, "<html", status_code=422)
+        reponse = self.client.post(self.fiche, self.donnees_acces(), **HTMX)
+        self.assertContains(reponse, "Aucun changement")

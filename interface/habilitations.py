@@ -159,9 +159,39 @@ def appliquer_vue_groupe(admin, cible, changement: ChangementGroupe, motif: str)
 
 # --- Aperçu « Ce que voit cette personne » --------------------------------------------------------
 
-def apercu_droits(cible) -> dict:
-    """Droits effectifs de `cible`, calculés par comptes/acces.py sur un objet utilisateur neuf (sans cache)."""
+def simulation_depuis_formulaires(form_acces, form_groupe) -> dict:
+    """Habilitations hypothétiques décrites par les formulaires (valides) de la fiche, sans rien enregistrer."""
+    aujourd_hui = timezone.localdate()
+
+    def en_vigueur(debut, fin) -> bool:
+        return (debut is None or debut <= aujourd_hui) and (fin is None or fin >= aujourd_hui)
+
+    affectations, expirations = {}, []
+    for d in form_acces.demandes().values():
+        if d["role"] and en_vigueur(d["date_debut"], d["date_fin"]):
+            affectations[d["societe"].pk] = d["role"]
+            if d["date_fin"]:
+                expirations.append(f"Accès {d['societe'].code.upper()} : jusqu'au {d['date_fin']:%d/%m/%Y}")
+    donnees = form_groupe.cleaned_data
+    portee, societes, detail = None, [], False
+    if donnees.get("autoriser") and en_vigueur(donnees.get("date_debut"), donnees.get("date_fin")):
+        portee = donnees.get("portee") or PORTEE.TOUTES
+        societes = [s.pk for s in donnees.get("societes") or []] if portee == PORTEE.SELECTION else []
+        detail = bool(donnees.get("detail_autorise"))
+        if donnees.get("date_fin"):
+            expirations.append(f"Vue Groupe : jusqu'au {donnees['date_fin']:%d/%m/%Y}")
+    return {"affectations": affectations, "portee": portee, "societes": societes, "detail": detail,
+            "expirations": expirations}
+
+
+def apercu_droits(cible, simulation: dict | None = None) -> dict:
+    """
+    Droits effectifs de `cible`, calculés par comptes/acces.py sur un objet utilisateur neuf (sans cache).
+    Avec `simulation` (voir `simulation_depuis_formulaires`) : droits hypothétiques, rien n'est lu ni écrit en base.
+    """
     u = Utilisateur.objects.get(pk=cible.pk)
+    if simulation is not None:
+        acces.simuler(u, simulation["affectations"], simulation["portee"], simulation["societes"], simulation["detail"])
     societes = list(Societe.objects.filter(actif=True))
     lignes = []
     for s in societes:
@@ -175,7 +205,6 @@ def apercu_droits(cible) -> dict:
         else:
             actions = "Lire seulement"
         lignes.append({"societe": s, "role": LETTRES.get(role, "—"), "actions": actions, "acces": role is not None})
-    groupe = acces.habilitation_groupe(u)
     voit_groupe = acces.voit_vue_groupe(u)
     onglets = [l["societe"].nom for l in lignes if l["acces"]]
     pages = list(onglets)
@@ -184,17 +213,21 @@ def apercu_droits(cible) -> dict:
     pages.append("Règle de répartition")
     if acces.peut_administrer(u):
         pages.append("Habilitations (administration)")
-    expirations = []
-    for a in Affectation.objects.en_vigueur().filter(utilisateur=u, date_fin__isnull=False).select_related("societe"):
-        expirations.append(f"Accès {a.societe.code.upper()} : jusqu'au {a.date_fin:%d/%m/%Y}")
-    if groupe is not None and groupe.date_fin:
-        expirations.append(f"Vue Groupe : jusqu'au {groupe.date_fin:%d/%m/%Y}")
+    if simulation is not None:
+        expirations = simulation["expirations"]
+    else:
+        expirations = []
+        for a in Affectation.objects.en_vigueur().filter(utilisateur=u, date_fin__isnull=False).select_related("societe"):
+            expirations.append(f"Accès {a.societe.code.upper()} : jusqu'au {a.date_fin:%d/%m/%Y}")
+        groupe = acces.habilitation_groupe(u)
+        if groupe is not None and groupe.date_fin:
+            expirations.append(f"Vue Groupe : jusqu'au {groupe.date_fin:%d/%m/%Y}")
     return {
         "compte_actif": u.is_active, "admin": acces.est_admin_groupe(u), "pages": pages, "lignes": lignes,
         "voit_groupe": voit_groupe,
         "portee_toutes": acces.portee_vue_groupe(u) == acces.TOUTES,
         "societes_groupe": list(acces.societes_vue_groupe(u)) if voit_groupe else [],
-        "detail_groupe": bool(groupe and groupe.detail_autorise) and not acces.est_admin_groupe(u),
+        "detail_groupe": acces.detail_vue_groupe(u),
         "expirations": expirations,
         "mfa_obligatoire": bool(acces.roles_de(u) & set(settings.MFA_ROLES_OBLIGATOIRES)),
     }

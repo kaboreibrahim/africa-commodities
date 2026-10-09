@@ -1,0 +1,10 @@
+<div class="dialogue__corps">
+  <div class="dialogue__entete">
+    <h2>{{ titre }}</h2>
+    <button type="button" class="btn btn--secondaire btn--petit" data-fermer-dialogue aria-label="Fermer"><span class="ico ico-fermer" aria-hidden="true"></span></button>
+  </div>
+  <ul class="{% if erreur %}erreurs-formulaire{% else %}resume-changements{% endif %}" {% if erreur %}role="alert"{% endif %}>
+    {% for m in messages_dialogue %}<li>{{ m }}</li>{% endfor %}
+  </ul>
+  <div class="formulaire__actions"><button type="button" class="btn btn--secondaire" data-fermer-dialogue>Fermer</button></div>
+</div>
