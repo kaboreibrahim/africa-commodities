@@ -10,7 +10,8 @@ from django.shortcuts import redirect, render
 from django.views.generic import FormView, TemplateView
 
 from comptes import acces
-from core.templatetags.format_fr import de_mois, fcfa
+from core.templatetags.format_fr import de_mois, fcfa, mois_long
+from operations import pdf
 from operations.selectors import (etat_du_mois, marges_par_mois_par_societe, synthese_groupe, tableau_de_bord_societe,
                                   totaux_synthese)
 from repartition.models import RegleRepartition
@@ -180,6 +181,27 @@ class VueGroupeView(PageGroupeMixin, TemplateView):
             ouvrables={s.pk for s in societes if acces.peut_lire(user, s)},
         )
         return contexte
+
+
+class VueGroupePdfView(PageGroupeMixin, TemplateView):
+    """Téléchargement de la synthèse de la Vue Groupe du mois sélectionné (PDF), limitée à la portée de l'utilisateur."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        societes = list(acces.societes_vue_groupe(user))
+        synthese = synthese_groupe(self.mois, societes=societes)
+        total = totaux_synthese(synthese)
+        if acces.portee_vue_groupe(user) == acces.TOUTES:
+            portee = "toutes les sociétés"
+        else:
+            portee = "sociétés : " + ", ".join(s.code.upper() for s in societes)
+        contenu = pdf.pdf_groupe(synthese, total, mois_long(self.mois), portee)
+        reponse = HttpResponse(contenu, content_type="application/pdf")
+        reponse["Content-Disposition"] = f'attachment; filename="vue-groupe-{self.mois:%Y-%m}.pdf"'
+        reponse["Cache-Control"] = "private, no-store"
+        return reponse
 
 
 class RegleView(InterfaceMixin, TemplateView):

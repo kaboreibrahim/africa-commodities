@@ -168,3 +168,54 @@ def pdf_recap(societe, lignes, totaux, periode: str) -> bytes:
     ]
     doc.build(elements, onFirstPage=_pied, onLaterPages=_pied)
     return tampon.getvalue()
+
+
+def pdf_groupe(synthese, total, mois_texte: str, portee_texte: str) -> bytes:
+    """Synthèse de la Vue Groupe pour un mois (paysage) : une ligne par société de la portée, puis le total."""
+    st = _styles()
+    tampon, doc = _document(f"Vue Groupe - {mois_texte}", landscape(A4))
+
+    def pourcent(valeur) -> str:
+        return f"{Decimal(valeur or 0):.1f} %".replace(".", ",")
+
+    def couverture(r) -> str:
+        c = r["couverture"]
+        if not c.depenses_saisies:
+            return "non saisies"
+        return f"{'OK' if c.couvert else 'A couvrir'} {pourcent(c.taux)}"
+
+    entete = ["Société", "Quantité", "Marge", "Objectif", "Atteint", "Charges", "Africa Com.", "Risques", "Provision",
+              "Comptes", "Dépenses", "Couverture"]
+    donnees = [entete]
+    for r in synthese:
+        s = r["societe"]
+        donnees.append([s.nom[:26], f"{montant(r['quantite'])} {s.unite}", montant(r["marge"]), montant(r["objectif"]),
+                        pourcent(r["progression"]) + (" (OK)" if r["objectif_atteint"] else ""), montant(r["charges"]),
+                        montant(r["africa_commodities"]), montant(r["risques"]), montant(r["provision"]),
+                        montant(r["comptes"]), montant(r["depenses"]) if r["couverture"].depenses_saisies else "-",
+                        couverture(r)])
+    donnees.append(["TOTAL GROUPE", "", montant(total["marge"]), montant(total["objectif"]), pourcent(total["progression"]),
+                    montant(total["charges"]), montant(total["africa_commodities"]), montant(total["risques"]),
+                    montant(total["provision"]), montant(total["comptes"]), montant(total["depenses"]) if total["depenses"] else "-", ""])
+    tableau = Table(donnees, repeatRows=1)
+    tableau.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), VERT), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"), ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ("ALIGN", (1, 0), (-2, -1), "RIGHT"), ("LINEBELOW", (0, 1), (-1, -2), 0.3, BORD),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -2), [colors.white, colors.HexColor("#F8FAF7")]),
+        ("BACKGROUND", (0, -1), (-1, -1), CLAIR), ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+        ("LINEABOVE", (0, -1), (-1, -1), 1, VERT), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5), ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+    ]))
+    n = len(synthese)
+    elements = [
+        Paragraph("Vue Groupe - synthèse du mois", st["titre"]),
+        Paragraph(f"{mois_texte} - {portee_texte} - {n} société{'s' if n > 1 else ''} - marge du groupe "
+                  f"{fcfa(total['marge'])} - total Africa Commodities {fcfa(total['africa_commodities'])}", st["sous"]),
+        tableau,
+        Spacer(1, 4 * mm),
+        Paragraph("Couverture = part charges / dépenses du mois (OK : charges couvertes). Les totaux ne portent que sur "
+                  "les sociétés de votre portée.", st["petit"]),
+    ]
+    doc.build(elements, onFirstPage=_pied, onLaterPages=_pied)
+    return tampon.getvalue()

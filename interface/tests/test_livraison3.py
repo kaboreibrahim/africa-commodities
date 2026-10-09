@@ -150,3 +150,25 @@ class MenuTests(JeuInterfaceMixin, TestCase):
         self.connecter(self.admin_groupe)
         menu = self.client.get(reverse("interface:tableau", args=["ooa"])).content.decode().split('id="menu-lateral"')[1]
         self.assertLess(menu.index("Vue Groupe"), menu.index("Sociétés"))
+
+
+class VueGroupePdfTests(JeuInterfaceMixin, TestCase):
+    def test_pdf_du_mois_selectionne(self):
+        for utilisateur in (self.admin_groupe, self.direction):
+            with self.subTest(utilisateur=utilisateur.username):
+                self.connecter(utilisateur)
+                reponse = self.client.get(reverse("interface:groupe_pdf"), {"mois": "2026-03"})
+                self.assertEqual(reponse["Content-Type"], "application/pdf")
+                self.assertTrue(reponse.content.startswith(b"%PDF"))
+                self.assertIn("vue-groupe-2026-03.pdf", reponse["Content-Disposition"])
+                self.assertEqual(reponse["Cache-Control"], "private, no-store")
+
+    def test_bouton_sur_la_vue_groupe_avec_le_mois(self):
+        self.connecter(self.admin_groupe)
+        reponse = self.client.get(reverse("interface:groupe"), {"mois": "2026-03"})
+        self.assertContains(reponse, reverse("interface:groupe_pdf") + "?mois=2026-03")
+
+    def test_pdf_refuse_sans_habilitation(self):
+        self.connecter(self.saisie_ooa)
+        with self.assertLogs("securite", "WARNING"):
+            self.assertEqual(self.client.get(reverse("interface:groupe_pdf")).status_code, 404)

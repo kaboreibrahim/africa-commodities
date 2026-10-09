@@ -7,6 +7,11 @@
   <script src="{% static 'js/graphiques.js' %}" defer></script>
 {% endblock %}
 {% block contenu %}
+  <div class="actions-page no-print">
+    <a class="btn btn--secondaire" href="{% url 'interface:groupe_pdf' %}?mois={{ mois|iso_mois }}">
+      <span class="ico ico-telecharger" aria-hidden="true"></span>Télécharger la synthèse de {{ mois|mois_long }} (PDF)
+    </a>
+  </div>
   <section class="kpis kpis--7" aria-label="Indicateurs du groupe – {{ mois|mois_long }}">
     <div class="kpi">
       <div class="kpi__l">Marge du groupe – {{ mois|mois_long }}</div>

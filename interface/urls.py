@@ -9,6 +9,7 @@ urlpatterns = [
     path("onglets/", views.OngletsView.as_view(), name="onglets"),
     path("theme/<slug:code>.css", views.theme_css, name="theme"),
     path("groupe/", views.VueGroupeView.as_view(), name="groupe"),
+    path("groupe/recap.pdf", views.VueGroupePdfView.as_view(), name="groupe_pdf"),
     path("regle/", views.RegleView.as_view(), name="regle"),
     path("administration/habilitations/", views_habilitations.UtilisateursView.as_view(), name="habilitations"),
     path("administration/habilitations/matrice/", views_habilitations.MatriceView.as_view(), name="habilitations_matrice"),
