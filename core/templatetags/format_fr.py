@@ -120,3 +120,11 @@ def de_mois(valeur) -> str:
     if not texte:
         return ""
     return f"d'{texte}" if texte[0] in "aeiouy" else f"de {texte}"
+
+
+@register.filter
+def logo_url(societe) -> str:
+    """URL du logo de la société (téléversé ou fourni avec l'application), chaîne vide s'il n'y en a pas."""
+    from interface.theme import url_logo  # import tardif : core ne dépend pas de l'interface au chargement
+
+    return url_logo(societe) or ""

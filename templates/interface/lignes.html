@@ -2,17 +2,16 @@
 {% load format_fr %}
 {% block titre %}{{ societe.code|upper }} – {{ societe.libelle_ligne_pluriel|majuscule_initiale }}{% endblock %}
 {% block contenu %}
-  {% if form %}{% include "partials/ligne_form.html" %}{% endif %}
-  {% if form and peut_gerer %}
-    <details class="carte no-print">
-      <summary>Nouveau client ? Ajoutez-le ici, il sera aussitôt proposé dans le formulaire.</summary>
-      {% include "partials/client_rapide.html" with form=form_client %}
-    </details>
-  {% endif %}
-
   <section class="carte">
-    <h2>{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés
-      <small>— {% if periode == 'mois' %}{{ mois|mois_long }}{% elif periode == 'annee' %}année {{ mois|date:"Y" }}{% else %}toutes périodes{% endif %}</small></h2>
+    <div class="entete-section">
+      <h2>{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés
+        <small>— {% if periode == 'mois' %}{{ mois|mois_long }}{% elif periode == 'annee' %}année {{ mois|date:"Y" }}{% else %}toutes périodes{% endif %}</small></h2>
+      {% if form %}
+        <a class="btn no-print" href="?nouveau=1" data-ouvrir-dialogue="dialogue-saisie">
+          <span class="ico ico-plus" aria-hidden="true"></span>Nouveau {{ societe.libelle_ligne }}
+        </a>
+      {% endif %}
+    </div>
 
     <form id="filtres" class="filtres no-print" method="get" action="{% url 'interface:lignes' societe.code %}"
           hx-get="{% url 'interface:lignes' societe.code %}" hx-target="#liste-lignes" hx-swap="outerHTML" hx-push-url="true"
@@ -26,6 +25,20 @@
 
     {% include "partials/lignes_liste.html" %}
   </section>
+
+  {% if form %}
+    <dialog class="dialogue" id="dialogue-saisie" aria-labelledby="titre-saisie"{% if request.GET.nouveau or form.is_bound %} open{% endif %}>
+      <div class="dialogue__corps">
+        {% include "partials/ligne_form.html" %}
+        {% if peut_gerer %}
+          <details class="no-print">
+            <summary>Nouveau client ? Ajoutez-le ici, il sera aussitôt proposé dans le formulaire.</summary>
+            {% include "partials/client_rapide.html" with form=form_client %}
+          </details>
+        {% endif %}
+      </div>
+    </dialog>
+  {% endif %}
 
   <dialog class="dialogue" id="dialogue-ligne" aria-labelledby="titre-dialogue">
     <div id="dialogue-contenu"></div>

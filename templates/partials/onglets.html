@@ -1,8 +1,12 @@
+{% load format_fr %}
 {% for s in onglets %}
   <a class="onglet{% if societe and societe.pk == s.pk %} onglet--actif{% endif %}"
-     href="{% if section == 'lignes' %}{% url 'interface:lignes' s.code %}{% elif section == 'clients' %}{% url 'interface:clients' s.code %}{% else %}{% url 'interface:tableau' s.code %}{% endif %}"
+     href="{% url 'interface:tableau' s.code %}"
      {% if societe and societe.pk == s.pk %}aria-current="page"{% endif %}>
-    <span class="point serie-{{ s.code }}" aria-hidden="true"></span>{{ s.nom }}
+    {% with logo=s|logo_url %}
+      {% if logo %}<img class="onglet__logo" src="{{ logo }}" alt="" width="30" height="30">{% else %}<span class="point serie-{{ s.code }}" aria-hidden="true"></span>{% endif %}
+    {% endwith %}
+    <span class="onglet__nom">{{ s.nom }}</span>
     {% if s.objectif_atteint %}<span class="onglet__ok" title="Objectif du mois atteint">✔<span class="visuellement-cache"> objectif atteint</span></span>{% endif %}
   </a>
 {% endfor %}

@@ -1,9 +1,13 @@
-<form id="form-ligne" class="carte no-print" method="post" action="{% url 'interface:lignes' societe.code %}"
+<form id="form-ligne" class="form-saisie no-print" method="post" action="{% url 'interface:lignes' societe.code %}"
       hx-post="{% url 'interface:lignes' societe.code %}" hx-target="this" hx-swap="outerHTML">
-  <h2>Enregistrer : {{ societe.libelle_ligne }}</h2>
+  <div class="dialogue__entete">
+    <h2 id="titre-saisie">Nouveau {{ societe.libelle_ligne }}</h2>
+    <button type="button" class="btn btn--secondaire btn--petit" data-fermer-dialogue aria-label="Fermer"><span class="ico ico-fermer" aria-hidden="true"></span></button>
+  </div>
   {% csrf_token %}
   {% include "partials/ligne_champs.html" with prefixe="ajout-" %}
   <div class="formulaire__actions">
-    <button type="submit">+ Ajouter</button>
+    <button type="submit"><span class="ico ico-plus" aria-hidden="true"></span>Enregistrer</button>
+    <button type="button" class="btn btn--secondaire" data-fermer-dialogue>Annuler</button>
   </div>
 </form>

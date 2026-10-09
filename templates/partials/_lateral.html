@@ -8,20 +8,12 @@
   <nav aria-label="Navigation principale">
     <ul class="lateral__nav">
       <li>
-        <a class="lateral__lien" href="{% if societe %}{% url 'interface:tableau' societe.code %}{% else %}{% url 'interface:accueil' %}{% endif %}"
-           {% if societe and section == 'tableau' %}aria-current="page"{% endif %}>
-          <span class="ico ico-tableau" aria-hidden="true"></span>Tableau de bord
-        </a>
-      </li>
-      <li>
-        <details class="lateral__groupe" open>
-          <summary><span class="ico ico-societes" aria-hidden="true"></span>Sociétés<span class="ico ico-bas" aria-hidden="true"></span></summary>
-          <nav class="onglets" id="onglets" aria-label="Sociétés"
-               hx-get="{% url 'interface:onglets' %}?actif={{ societe.code|default:'' }}&amp;section={{ section }}"
-               hx-trigger="lignesModifiees from:body, objectifModifie from:body" hx-swap="innerHTML">
-            {% include "partials/onglets.html" %}
-          </nav>
-        </details>
+        <p class="lateral__titre" id="titre-societes">Sociétés</p>
+        <nav class="onglets" id="onglets" aria-labelledby="titre-societes"
+             hx-get="{% url 'interface:onglets' %}?actif={{ societe.code|default:'' }}&amp;section={{ section }}"
+             hx-trigger="lignesModifiees from:body, objectifModifie from:body" hx-swap="innerHTML">
+          {% include "partials/onglets.html" %}
+        </nav>
       </li>
       {% if societe %}
         <li>

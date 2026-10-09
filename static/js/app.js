@@ -136,10 +136,28 @@
   /* ---------- Boîte de dialogue (modification) ---------- */
   document.addEventListener("htmx:afterSwap", function (evt) {
     var dialogue = evt.detail.target && evt.detail.target.closest("dialog");
-    if (dialogue && !dialogue.open && evt.detail.target.innerHTML.trim()) {
+    // Seul le contenu chargé à la demande (#dialogue-contenu) ouvre la fenêtre ; la fenêtre de saisie a son bouton.
+    if (dialogue && !dialogue.open && evt.detail.target.id === "dialogue-contenu" && evt.detail.target.innerHTML.trim()) {
       dialogue.showModal();
       var premier = dialogue.querySelector("input:not([type=hidden]), select, textarea");
       if (premier) { premier.focus(); }
+    }
+  });
+  function ouvrirDialogue(dialogue) {
+    if (!dialogue || dialogue.matches(":modal")) { return; }
+    dialogue.removeAttribute("open");  // ouverte « à plat » sans JavaScript : on la rouvre en modale
+    dialogue.showModal();
+    var premier = dialogue.querySelector("input:not([type=hidden]), select, textarea");
+    if (premier) { premier.focus(); }
+  }
+  document.addEventListener("DOMContentLoaded", function () {
+    Array.prototype.forEach.call(document.querySelectorAll("dialog[open]"), ouvrirDialogue);
+  });
+  document.addEventListener("click", function (evt) {
+    var ouvreur = evt.target.closest("[data-ouvrir-dialogue]");
+    if (ouvreur) {
+      evt.preventDefault();
+      ouvrirDialogue(document.getElementById(ouvreur.getAttribute("data-ouvrir-dialogue")));
     }
   });
   document.addEventListener("click", function (evt) {

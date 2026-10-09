@@ -29,3 +29,26 @@ class ListeLignesTests(JeuInterfaceMixin, TestCase):
         reponse = self.client.get(url, {"q": "introuvable-xyz"})
         self.assertContains(reponse, "Aucun enregistrement pour cette période")
         self.assertContains(reponse, "etat-vide")
+
+
+class NavigationTests(JeuInterfaceMixin, TestCase):
+    def test_menu_vers_le_tableau_de_bord_avec_logos(self):
+        self.connecter(self.admin_groupe)
+        reponse = self.client.get(reverse("interface:lignes", args=["ooa"]))
+        for code in ("ooa", "anl"):  # un clic sur une société ouvre directement son tableau de bord, même depuis les dossiers
+            self.assertContains(reponse, f'href="{reverse("interface:tableau", args=[code])}"')
+        self.assertContains(reponse, 'class="onglet__logo"')
+        self.assertNotContains(reponse, ">Tableau de bord<")
+
+    def test_bouton_voir_les_dossiers_et_fenetre_de_saisie(self):
+        self.connecter(self.saisie_ooa)
+        tableau = self.client.get(reverse("interface:tableau", args=["ooa"]))
+        self.assertContains(tableau, f'href="{reverse("interface:lignes", args=["ooa"])}"')
+        self.assertContains(tableau, "Voir les dossiers")
+        liste = self.client.get(reverse("interface:lignes", args=["ooa"]))
+        self.assertContains(liste, 'id="dialogue-saisie"')
+        self.assertContains(liste, "Nouveau dossier")
+        self.connecter(self.lecture_ooa)  # pas de droit de saisie : ni bouton ni fenêtre
+        self.assertNotContains(self.client.get(reverse("interface:lignes", args=["ooa"])), "dialogue-saisie")
+        reponse = self.client.get(reverse("interface:lignes", args=["ooa"]), {"nouveau": "1"})
+        self.assertNotContains(reponse, "form-ligne")

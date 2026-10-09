@@ -133,7 +133,8 @@ class LignesView(LignesMixin, PageSocieteMixin, TemplateView):
             # Formulaire vidé, mais date, client et marge gardés pour enchaîner les saisies.
             suivant = self.formulaire(initial={"date": ligne.date, "client": ligne.client_id or "",
                                                "marge_unitaire": ligne.marge_unitaire, "quantite": 1})
-            return self.reponse_enregistrement(self.render_fragment_formulaire(suivant), ligne, seuils, message)
+            reponse = self.reponse_enregistrement(self.render_fragment_formulaire(suivant), ligne, seuils, message)
+            return declencher(reponse, fermerDialogue=True)  # la fenêtre de saisie se referme, la liste se rafraîchit
         return self.reponse_enregistrement(redirect(request.get_full_path()), ligne, seuils, message)
 
     def render_fragment_formulaire(self, form, status=200):

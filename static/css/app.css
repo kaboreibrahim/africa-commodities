@@ -157,11 +157,14 @@ img { max-width: 100%; }
 }
 .lateral__groupe > summary .ico-bas { margin-left: auto; transition: transform .15s ease-out; }
 .lateral__groupe[open] > summary .ico-bas { transform: rotate(180deg); }
-.lateral .onglets { display: flex; flex-direction: column; gap: 1px; padding: 2px 0 6px 18px; }
+.lateral .onglets { display: flex; flex-direction: column; gap: 2px; padding: 2px 0 8px; }
 .onglet {
   display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 6px 12px; border-radius: 8px;
   font-size: 13px; color: rgba(250, 247, 240, .8);
 }
+.onglet__logo { width: 30px; height: 30px; flex: none; border-radius: 8px; background: var(--blanc); object-fit: contain; padding: 2px; }
+.onglet__nom { min-width: 0; }
+.lateral__titre { margin: 8px 12px 4px; font: 600 11px var(--police-titre); letter-spacing: .14em; text-transform: uppercase; color: rgba(250, 247, 240, .6); }
 .onglet:hover { background: rgba(250, 247, 240, .08); color: var(--acr-ivoire); }
 .onglet--actif { background: rgba(250, 247, 240, .16); color: var(--acr-ivoire); font-weight: 600; }
 .onglet__ok { margin-left: auto; color: #9BE3A8; font-weight: 700; }
@@ -421,6 +424,12 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .etat-vide { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 30px 16px; text-align: center; color: var(--gris); }
 .etat-vide .ico { width: 40px; height: 40px; color: var(--acr-or-clair); }
 .etat-vide p { margin: 0; max-width: 46ch; }
+
+/* Bouton « Voir les dossiers » et fenêtre de saisie */
+.actions-page { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+.form-saisie .dialogue__entete h2 { font-size: 17px; }
+dialog.dialogue[open]:not(:modal) { position: static; margin: 0 auto 18px; display: block; border: 1px solid var(--bord); }
+dialog.dialogue { max-height: calc(100vh - 24px); overflow-y: auto; }
 
 /* Lignes et clients : tableau sur ordinateur, cartes sur téléphone */
 .vue-cartes { display: none; }
