@@ -6,15 +6,34 @@
   <section class="carte">
     <h2>Règle en vigueur{% if regle %} <small>— depuis le {{ regle.date_debut|date:"d/m/Y" }}</small>{% endif %}</h2>
     {% if regle %}
-      <ol class="schema-regle">
-        <li><strong>{{ regle.pct_charges|pct }}</strong> de la marge va aux <strong>charges</strong>.</li>
-        <li>Sur le reste, <strong>{{ regle.pct_africa_commodities|pct }}</strong> va à <strong>Africa Commodities</strong> (tête du groupe).</li>
-        <li>Le solde est partagé entre <strong>Risques</strong>, <strong>Provision</strong> et <strong>Comptes</strong> :
-          {{ regle.parts_risques }} / {{ regle.parts_provision }} / {{ regle.parts_comptes }} part(s).
-          L'écart d'arrondi (quelques francs au plus) va aux Comptes : la somme des parts est toujours égale à la marge.</li>
+      {% with ex=exemples.0 %}
+      <ol class="flux-regle" aria-label="La règle en 3 étapes">
+        <li class="etape-regle">
+          <span class="etape-regle__num" aria-hidden="true">1</span>
+          <h3>Les charges</h3>
+          <p class="etape-regle__pct">{{ regle.pct_charges|pct }}</p>
+          <p>de la marge va aux <strong>charges</strong>.</p>
+          {% if ex %}<p class="etape-regle__ex">Sur {{ ex.marge|fcfa }} : <strong>{{ ex.charges|fcfa }}</strong></p>{% endif %}
+        </li>
+        <li class="etape-regle etape-regle--ac">
+          <span class="etape-regle__num" aria-hidden="true">2</span>
+          <h3>Africa Commodities</h3>
+          <p class="etape-regle__pct">{{ regle.pct_africa_commodities|pct }}</p>
+          <p>du reste va à <strong>Africa Commodities</strong>, la tête du groupe.</p>
+          {% if ex %}<p class="etape-regle__ex">Sur le reste de {{ ex.marge|fcfa }} : <strong>{{ ex.africa_commodities|fcfa }}</strong></p>{% endif %}
+        </li>
+        <li class="etape-regle">
+          <span class="etape-regle__num" aria-hidden="true">3</span>
+          <h3>Le solde</h3>
+          <p class="etape-regle__pct">{{ regle.parts_risques }} · {{ regle.parts_provision }} · {{ regle.parts_comptes }}</p>
+          <p>parts pour les <strong>risques</strong>, la <strong>provision</strong> et les <strong>comptes</strong> de la société.</p>
+          {% if ex %}<p class="etape-regle__ex">{{ ex.risques|fcfa }} · {{ ex.provision|fcfa }} · {{ ex.comptes|fcfa }}</p>{% endif %}
+        </li>
       </ol>
+      {% endwith %}
+      <p class="aide">L'écart d'arrondi (quelques francs au plus) va aux Comptes : la somme des parts est toujours égale à la marge.</p>
       {% if regle.note %}<p class="aide">Note : {{ regle.note }}</p>{% endif %}
-      <p class="aide">Une nouvelle règle ne s'applique qu'à partir de sa date de début : <strong>les lignes déjà enregistrées gardent la répartition calculée avec la règle de leur date</strong>.</p>
+      <p class="encadre-info"><span class="ico ico-info" aria-hidden="true"></span><span>Une nouvelle règle ne modifie jamais les lignes déjà enregistrées. Elle ne s'applique qu'à partir de sa date de début : <strong>les lignes déjà enregistrées gardent la répartition calculée avec la règle de leur date</strong>.</span></p>
     {% else %}
       <p class="alerte">Aucune règle n'est en vigueur aujourd'hui : la saisie est impossible tant qu'une règle n'est pas créée.</p>
     {% endif %}

@@ -12,7 +12,9 @@
       <span class="ico ico-telecharger" aria-hidden="true"></span>Télécharger la synthèse de {{ mois|mois_long }} (PDF)
     </a>
   </div>
-  <section class="kpis kpis--7" aria-label="Indicateurs du groupe – {{ mois|mois_long }}">
+  <h2 class="titre-page">Vue Groupe <span>— {% if portee_toutes %}toutes les sociétés{% else %}{{ portee_societes|length }} société{{ portee_societes|length|pluralize }} : {% for s in portee_societes %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</span></h2>
+
+  <section class="kpis kpis--6" aria-label="Indicateurs du groupe – {{ mois|mois_long }}">
     <div class="kpi">
       <div class="kpi__l">Marge du groupe – {{ mois|mois_long }}</div>
       <div class="kpi__v">{{ total.marge|fcfa }}</div>
@@ -31,12 +33,7 @@
       <div class="kpi__v">{{ total.charges_couvertes|length }} / {{ synthese|length }}</div>
       <div class="kpi__s">{% for s in total.charges_couvertes %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% empty %}Aucune pour l'instant{% endfor %}</div>
     </div>
-    <div class="kpi">
-      <div class="kpi__l">Charges ({{ regle_pied.pct_charges|pct }})</div>
-      <div class="kpi__v">{{ total.charges|fcfa }}</div>
-      <div class="kpi__s">Dépenses saisies : {{ total.depenses|fcfa }}</div>
-    </div>
-    <div class="kpi kpi--ac">
+    <div class="kpi kpi--ac kpi--or">
       <div class="kpi__l">Total Africa Commodities</div>
       <div class="kpi__v texte-ac">{{ total.africa_commodities|fcfa }}</div>
       <div class="kpi__s">Remontée à la tête du groupe</div>

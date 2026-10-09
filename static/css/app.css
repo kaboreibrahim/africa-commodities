@@ -491,6 +491,25 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
 
 /* ---------- 6. Pages ---------- */
 .kpi--charges .kpi__v { color: var(--acr-encre); }
+.titre-page { margin: 0 0 14px; font-size: 18px; color: var(--c-foncee); }
+.titre-page span { font-family: var(--police-texte); font-weight: 500; color: var(--gris); font-size: 15px; }
+.kpi--or { box-shadow: var(--ombre), inset 0 3px 0 var(--acr-or); }
+.flux-regle { list-style: none; margin: 0 0 8px; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px; }
+.etape-regle { position: relative; padding: 16px; border: 1px solid var(--bord); border-top: 3px solid var(--c-charges); border-radius: var(--rayon); background: var(--blanc); box-shadow: var(--ombre); }
+.etape-regle--ac { border-top-color: var(--c-ac); }
+.etape-regle:last-child { border-top-color: var(--c-comptes); }
+.etape-regle:not(:last-child)::after { content: ""; position: absolute; top: 50%; right: -27px; width: 20px; height: 20px; background: var(--acr-or); -webkit-mask: url("../img/icones/chevron-right.svg") center / contain no-repeat; mask: url("../img/icones/chevron-right.svg") center / contain no-repeat; }
+.etape-regle h3 { margin: 4px 0 6px; font-size: 15px; color: var(--c-foncee); }
+.etape-regle p { margin: 0 0 6px; }
+.etape-regle__num { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--c-foncee); color: var(--blanc); font: 700 13px var(--police-titre); }
+.etape-regle__pct { font: 700 26px/1.2 var(--police-titre); color: var(--c-foncee); }
+.etape-regle__ex { font-size: 12px; color: var(--gris); border-top: 1px dashed var(--bord); padding-top: 6px; margin-top: 8px !important; }
+.encadre-info { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0 0; padding: 12px 14px; border-radius: 8px; background: #FBF5E6; border-left: 4px solid var(--acr-or); color: var(--acr-encre); }
+.encadre-info .ico { margin-top: 2px; color: var(--acr-or); }
+@media (max-width: 720px) {
+  .flux-regle { grid-template-columns: 1fr; gap: 30px; }
+  .etape-regle:not(:last-child)::after { top: auto; bottom: -26px; right: calc(50% - 10px); transform: rotate(90deg); }
+}
 .schema-regle { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .schema-regle li { padding: 10px 12px; border-left: 4px solid var(--c-principale); background: var(--acr-fond); border-radius: 6px; }
 
