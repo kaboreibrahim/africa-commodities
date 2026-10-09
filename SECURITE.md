@@ -57,3 +57,21 @@ en clair (comportement par défaut d'allauth). Il faut alors supprimer tous les 
 
 Après l'incident, réactiver le compte seulement une fois la cause comprise, et le noter dans le journal
 d'exploitation.
+
+---
+
+# Revue trimestrielle des accès
+
+À faire chaque trimestre (et à chaque départ ou changement de poste important).
+
+1. **Exporter le rapport** des habilitations en vigueur :
+   `python manage.py rapport_habilitations --format csv > habilitations-T{n}-{année}.csv`
+   (la matrice utilisateurs × sociétés est aussi exportable depuis *Habilitations → Matrice*).
+2. **Faire valider la liste par la direction** : pour chaque personne, l'accès à chaque société et la Vue Groupe
+   (portée, accès au détail) sont-ils toujours justifiés ? Vérifier aussi les comptes jamais connectés et ceux sans 2FA
+   (filtres « 2FA manquante » de l'écran Habilitations).
+3. **Retirer les accès inutiles** depuis l'écran *Habilitations*, avec le motif **« Revue T{n} {année} »**.
+   Chaque retrait ferme les sessions de la personne et reste tracé au journal de sécurité (avant, après, motif, auteur).
+4. Conserver le fichier exporté et la liste validée avec la date de la revue.
+
+Rappels : les habilitations à durée limitée expirent seules (dates de fin) ; `expirer_habilitations` doit tourner chaque jour.

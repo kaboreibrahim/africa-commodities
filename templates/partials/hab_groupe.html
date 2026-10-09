@@ -1,0 +1,27 @@
+{% if form_groupe.errors %}
+  <ul class="erreurs-formulaire">{% for champ, erreurs in form_groupe.errors.items %}{% for e in erreurs %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>
+{% endif %}
+<div class="hab-groupe">
+  <label class="case">{{ form_groupe.autoriser }} <span>{{ form_groupe.autoriser.label }}</span></label>
+  <fieldset class="hab-groupe__portee">
+    <legend class="libelle">Portée</legend>
+    {% for radio in form_groupe.portee %}<label class="case">{{ radio.tag }} <span>{{ radio.choice_label }}</span></label>{% endfor %}
+  </fieldset>
+  <fieldset class="hab-groupe__societes">
+    <legend class="libelle">Sociétés de la portée <small>(pour « Sociétés sélectionnées » : au moins 2)</small></legend>
+    <div class="cases-societes">
+      {% for cb in form_groupe.societes %}
+        <label class="case">{{ cb.tag }} <span class="point serie-{{ cb.data.value }}" aria-hidden="true"></span><span>{{ cb.choice_label }}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+  <label class="case">{{ form_groupe.detail_autorise }} <span>{{ form_groupe.detail_autorise.label }}</span></label>
+  <p class="aide">{{ form_groupe.detail_autorise.help_text }}</p>
+  <div class="formulaire">
+    <div class="champ"><label for="{{ form_groupe.date_debut.id_for_label }}">{{ form_groupe.date_debut.label }}</label>{{ form_groupe.date_debut }}</div>
+    <div class="champ"><label for="{{ form_groupe.date_fin.id_for_label }}">{{ form_groupe.date_fin.label }}</label>{{ form_groupe.date_fin }}</div>
+    {% if form_groupe.motif %}
+      <div class="champ"><label for="{{ form_groupe.motif.id_for_label }}">{{ form_groupe.motif.label }}</label>{{ form_groupe.motif }}</div>
+    {% endif %}
+  </div>
+</div>

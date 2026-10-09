@@ -80,44 +80,82 @@ Le calcul est fait à un seul endroit : `operations/selectors.py → couverture_
 
 ## Sécurité
 
-### Matrice des droits
+### Habilitations : qui voit quoi
 
-| Action | Admin groupe | Direction | Responsable (sa société) | Saisie (sa société) | Lecture (sa société) |
+Par défaut, **personne n'a rien** : un nouveau compte ne voit aucune société ni la Vue Groupe tant que
+l'administrateur groupe ne lui a rien accordé. Deux habilitations, chacune avec date de début / date de fin
+facultatives (une habilitation expirée ne donne plus aucun droit, sans action manuelle) :
+
+- **Accès société** : Responsable, Saisie ou Lecture sur **une** société (`Affectation`).
+- **Vue Groupe** : la vue consolidée sur **toutes** les sociétés (y compris les futures) ou sur une **sélection
+  d'au moins 2 sociétés** (`HabilitationVueGroupe`), avec ou sans **accès au détail** (tableau de bord et lignes
+  des sociétés de la portée, en lecture seule, rôle « lecture_groupe »).
+
+| Action | Admin groupe | Vue Groupe (portée) | Responsable (sa société) | Saisie (sa société) | Lecture (sa société) |
 |---|:-:|:-:|:-:|:-:|:-:|
-| Voir lignes, totaux, tableaux de bord | ✅ toutes | ✅ toutes | ✅ | ✅ | ✅ |
-| Voir la vue Groupe consolidée | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Voir lignes, totaux, tableaux de bord | ✅ toutes | ✅ si « détail » (lecture seule, sociétés de la portée) | ✅ | ✅ | ✅ |
+| Voir la Vue Groupe consolidée | ✅ toutes | ✅ sociétés de la portée seulement (totaux compris) | ❌ | ❌ | ❌ |
 | Ajouter une ligne | ✅ | ❌ | ✅ | ✅ | ❌ |
 | Modifier une ligne | ✅ | ❌ | ✅ toutes | ✅ ses lignes, mois en cours et mois précédent | ❌ |
 | Supprimer (douce) / restaurer une ligne | ✅ | ❌ | ✅ | ❌ | ❌ |
 | Gérer clients et objectifs mensuels | ✅ | ❌ | ✅ | ❌ | ❌ |
-| Règle de répartition, sociétés, utilisateurs, affectations | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Habilitations, règle de répartition, sociétés, utilisateurs | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Accès à l'admin Django | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-- Les règles sont appliquées **à un seul endroit** : `comptes/acces.py`. Les services d'écriture
-  (`operations/services.py`, `societes/services.py`), les mixins de vues (`comptes/mixins.py`) et
-  l'admin s'appuient dessus.
+Les habilitations se cumulent (par exemple Saisie sur OOA **et** Vue Groupe sans détail sur OOA, ANL et MLP :
+saisie possible sur OOA, chiffres consolidés seulement pour ANL et MLP).
+
+- Les règles sont appliquées **à un seul endroit** : `comptes/acces.py` (une requête SQL par requête HTTP, aucun
+  cache entre deux requêtes : un retrait s'applique à la requête suivante). Les services d'écriture
+  (`operations/services.py`, `societes/services.py`), les mixins de vues (`comptes/mixins.py`) et l'admin s'appuient dessus.
+- Toute attribution passe par `comptes/services.py` : motif obligatoire pour un retrait et pour la Vue Groupe,
+  un admin ne peut ni se retirer ses droits ni se désactiver, les sessions de la personne sont supprimées au retrait.
+  Chaque opération est tracée au journal de sécurité (auteur, cible, avant, après, motif).
 - Hors périmètre : **404** dans les vues (on ne révèle pas l'existence d'une société),
   **`PermissionDenied`** dans les services. Chaque refus est inscrit au journal de sécurité.
-- Un compte inactif, une affectation inactive ou une société inactive ne donnent aucun droit.
+- Un compte inactif, une affectation inactive ou expirée, une société inactive ne donnent aucun droit.
 - Fenêtre de modification du rôle Saisie : `SAISIE_FENETRE_MODIFICATION_MOIS` (1 par défaut).
+- L'ancien rôle global « Direction » n'existe plus : la migration `0006_reprise_role_direction` l'a converti en
+  Vue Groupe « toutes les sociétés, avec détail » (annulable : `migrate comptes 0005`).
+
+### Accorder une Vue Groupe partielle
+
+1. Menu utilisateur → **Habilitations** (`/administration/habilitations/`), puis **Gérer** sur la personne.
+2. Bloc **Vue Groupe** : cocher « Autoriser la Vue Groupe », choisir « Sociétés sélectionnées », cocher au moins
+   2 sociétés, décider si le **détail** est autorisé, fixer des dates si besoin.
+3. **Voir les changements**, saisir le **motif** et confirmer. L'encadré « Ce que voit cette personne » montre le résultat.
+
+L'onglet **Matrice** donne la vue d'ensemble (R / S / L / G / A, avec export CSV) ; **Nouvel utilisateur** crée un compte
+avec ses habilitations initiales (mot de passe provisoire affiché une seule fois).
+
+### Commandes d'habilitations
+
+```bash
+python manage.py rapport_habilitations                      # habilitations en vigueur, par utilisateur
+python manage.py rapport_habilitations --format csv > habilitations.csv   # pour la revue trimestrielle
+python manage.py expirer_habilitations                      # à planifier chaque jour (étape 5)
+```
+
+`expirer_habilitations` passe `actif=False` sur les habilitations dont la date de fin est dépassée et journalise
+l'expiration. Les droits sont **déjà** refusés à la lecture grâce aux dates : la commande garde seulement la base propre.
 
 ### Créer un utilisateur
 
-Les comptes sont créés par l'admin groupe : il n'y a pas d'inscription publique.
+Les comptes sont créés par l'admin groupe : il n'y a pas d'inscription publique. Le plus simple est l'écran
+**Habilitations → Nouvel utilisateur**. En ligne de commande :
 
 ```bash
 python manage.py creer_utilisateur --email awa@exemple.ci --nom Koné --prenom Awa     --societe ooa:responsable --societe anl:lecture
-python manage.py creer_utilisateur --email dg@exemple.ci --nom Diallo --prenom Moussa --role-global direction
+python manage.py creer_utilisateur --email dg@exemple.ci --nom Diallo --prenom Moussa --role-global admin_groupe
 ```
 
-Rôles par société : `responsable`, `saisie`, `lecture`. Rôles groupe : `admin_groupe`, `direction`.
-Le mot de passe provisoire est affiché **une seule fois**. Il faut le transmettre par un canal sûr.
-Son changement est imposé à la première connexion. On peut aussi créer un compte dans l'admin
-(Utilisateurs), puis ajouter ses affectations en bas de la fiche.
+Rôles par société : `responsable`, `saisie`, `lecture`. Rôle groupe : `admin_groupe` (la Vue Groupe s'accorde depuis
+l'écran Habilitations). Le mot de passe provisoire est affiché **une seule fois** : il faut le transmettre par un
+canal sûr. Son changement est imposé à la première connexion.
 
 ### Double authentification (2FA)
 
-- **Obligatoire** pour l'admin groupe et les responsables (`MFA_ROLES_OBLIGATOIRES`) : tant qu'elle
+- **Obligatoire** pour l'admin groupe, les responsables et les titulaires d'une Vue Groupe en vigueur (`MFA_ROLES_OBLIGATOIRES`) : tant qu'elle
   n'est pas activée, toutes les pages redirigent vers son activation. Elle est facultative pour les autres rôles.
 - Activation : *Double authentification* (`/compte/2fa/`). Il faut scanner le QR code avec une application
   (Google Authenticator, Microsoft Authenticator, FreeOTP…), saisir le code, puis **conserver les codes de
@@ -172,14 +210,15 @@ sélecteurs et services ; le JavaScript ne fait que dessiner. Tout fonctionne au
 
 | Route | Écran | Qui y accède |
 |---|---|---|
-| `/` | redirection : Vue Groupe (Admin, Direction) ou 1re société accessible | tout utilisateur connecté |
+| `/` | redirection : Vue Groupe (si l'utilisateur y a droit) ou 1re société accessible | tout utilisateur connecté |
 | `/s/<code>/` | tableau de bord : indicateurs, objectif, dépenses, 5 graphiques avec tableaux équivalents | lecteurs de la société |
 | `/s/<code>/lignes/` | liste filtrée (période, recherche, client, projet), total, pagination ; formulaire d'ajout | lecture : tous ; ajout : Responsable, Saisie, Admin |
 | `/s/<code>/lignes/<id>/modifier/` | modification (boîte de dialogue) | Admin, Responsable ; Saisie : ses lignes du mois et du mois précédent |
 | `…/supprimer/`, `…/restaurer/`, `/s/<code>/corbeille/` | suppression douce (avec « Annuler »), corbeille | Responsable, Admin |
 | `/s/<code>/clients/` | clients avec leur nombre de lignes | lecture : tous ; gestion : Responsable, Admin |
 | `/s/<code>/objectif/`, `/s/<code>/depenses/` | objectif et dépenses du mois (HTMX) | Responsable, Admin |
-| `/groupe/` | Vue Groupe consolidée | Admin groupe, Direction |
+| `/groupe/` | Vue Groupe consolidée (sociétés de la portée) | Admin groupe, titulaires d'une Vue Groupe |
+| `/administration/habilitations/` (+ `matrice/`, `nouveau/`, `<id>/`) | habilitations des utilisateurs | Admin groupe (404 pour les autres) |
 | `/regle/` | règle en vigueur, exemples chiffrés, historique | tous (lecture) |
 | `/theme/<code>.css` | couleurs de la société (feuille générée, cache 1 h) | lecteurs de la société |
 

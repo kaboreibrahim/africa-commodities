@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block titre %}Habilitations{% endblock %}
+{% block sous_titre %}Administration — qui voit quoi{% endblock %}
+{% block contenu %}
+  {% include "partials/hab_nav.html" %}
+  <section class="carte">
+    <h2>Habilitations <small>accès aux sociétés et Vue Groupe</small></h2>
+    <form class="filtres" method="get" action="{% url 'interface:habilitations' %}"
+          hx-get="{% url 'interface:habilitations' %}" hx-target="#liste-utilisateurs" hx-swap="outerHTML"
+          hx-trigger="input changed delay:300ms from:#id_q, change from:select, change from:input[type=checkbox]" hx-push-url="true">
+      <div class="champ"><label for="id_q">{{ formulaire.q.label }}</label>{{ formulaire.q }}</div>
+      <div class="champ"><label for="id_societe">{{ formulaire.societe.label }}</label>{{ formulaire.societe }}</div>
+      <div class="champ"><label for="id_vue_groupe">{{ formulaire.vue_groupe.label }}</label>{{ formulaire.vue_groupe }}</div>
+      <div class="champ"><label for="id_actif">{{ formulaire.actif.label }}</label>{{ formulaire.actif }}</div>
+      <label class="case">{{ formulaire.mfa_manquante }} <span>{{ formulaire.mfa_manquante.label }}</span></label>
+      <label class="case">{{ formulaire.expire_bientot }} <span>{{ formulaire.expire_bientot.label }}</span></label>
+      <button type="submit" class="btn btn--secondaire">Filtrer</button>
+      <a class="btn btn--secondaire" href="{% url 'interface:habilitations' %}">Réinitialiser</a>
+    </form>
+    {% include "partials/habilitations_liste.html" %}
+  </section>
+{% endblock %}

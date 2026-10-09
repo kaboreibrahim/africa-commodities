@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block titre %}Compte créé{% endblock %}
+{% block sous_titre %}Administration — compte créé{% endblock %}
+{% block contenu %}
+  {% include "partials/hab_nav.html" %}
+  <section class="carte" aria-labelledby="titre-cree">
+    <h2 id="titre-cree">Compte créé : {{ nouveau.get_full_name }} <small>{{ nouveau.email }}</small></h2>
+    <p class="alerte">Mot de passe provisoire — affiché une seule fois, à transmettre par un canal sûr. Il devra être changé à la première connexion.</p>
+    <p class="mot-de-passe-provisoire"><code>{{ mot_de_passe }}</code></p>
+    <div class="formulaire__actions">
+      <a class="btn" href="{% url 'interface:habilitation_fiche' nouveau.pk %}">Voir ses habilitations</a>
+      <a class="btn btn--secondaire" href="{% url 'interface:habilitation_nouveau' %}">Créer un autre compte</a>
+    </div>
+  </section>
+{% endblock %}

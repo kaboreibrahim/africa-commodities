@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block titre %}Matrice des habilitations{% endblock %}
+{% block sous_titre %}Administration — matrice utilisateurs × sociétés{% endblock %}
+{% block contenu %}
+  {% include "partials/hab_nav.html" %}
+  <section class="carte">
+    <div class="entete-section">
+      <h2>Matrice des habilitations <small>comptes actifs</small></h2>
+      <a class="btn btn--secondaire" href="{% url 'interface:habilitations_matrice' %}?format=csv">Exporter en CSV</a>
+    </div>
+    <div class="cadre-tableau">
+      <table class="tableau tableau--simple matrice">
+        <caption class="visuellement-cache">Rôle de chaque utilisateur sur chaque société</caption>
+        <thead><tr>
+          <th scope="col">Utilisateur</th>
+          {% for s in societes_matrice %}<th scope="col" class="c"><span class="point serie-{{ s.code }}" aria-hidden="true"></span> {{ s.code|upper }}</th>{% endfor %}
+          <th scope="col" class="c">Vue Groupe</th>
+        </tr></thead>
+        <tbody>
+          {% for l in lignes %}
+            <tr>
+              <th scope="row"><a href="{% url 'interface:habilitation_fiche' l.utilisateur.pk %}">{{ l.utilisateur.get_full_name|default:l.utilisateur.username }}</a></th>
+              {% for c in l.cellules %}<td class="c"><span class="lettre lettre--{% if c.lettre == '—' %}aucun{% else %}{{ c.lettre }}{% endif %}" title="{{ c.libelle }}">{{ c.lettre }}<span class="visuellement-cache"> {{ c.libelle }}</span></span></td>{% endfor %}
+              <td class="c"><span class="lettre lettre--{% if l.groupe.lettre == '—' %}aucun{% else %}{{ l.groupe.lettre }}{% endif %}" title="{{ l.groupe.libelle }}">{{ l.groupe.lettre }}<span class="visuellement-cache"> {{ l.groupe.libelle }}</span></span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="aide">Légende :
+      {% for lettre, libelle in legende.items %}<strong>{{ lettre }}</strong> {{ libelle }} · {% endfor %}
+      <strong>T</strong> Vue Groupe sur toutes les sociétés · <strong>S</strong> Vue Groupe sur une sélection. La couleur ne porte jamais l'information seule.</p>
+  </section>
+{% endblock %}

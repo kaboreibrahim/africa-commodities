@@ -47,6 +47,7 @@
         <li><a href="{% url 'account_change_password' %}">Changer de mot de passe</a></li>
         <li><a href="{% url 'interface:regle' %}">Règle de répartition</a></li>
         {% if peut_administrer %}<li><a href="{% url 'admin:index' %}">Administration</a></li>{% endif %}
+        {% if peut_administrer %}<li><a href="{% url 'interface:habilitations' %}">Habilitations</a></li>{% endif %}
         <li><a href="{% url 'account_logout' %}">Déconnexion</a></li>
       </ul>
     </details>

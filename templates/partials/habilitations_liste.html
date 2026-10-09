@@ -1,0 +1,49 @@
+<div id="liste-utilisateurs">
+  <p class="aide" role="status">{{ lignes|length }} utilisateur{{ lignes|length|pluralize }}</p>
+  <div class="cadre-tableau">
+    <table class="tableau tableau--simple">
+      <caption class="visuellement-cache">Utilisateurs et habilitations</caption>
+      <thead><tr>
+        <th scope="col">Utilisateur</th><th scope="col">Statut</th><th scope="col">2FA</th><th scope="col">Rôle groupe</th>
+        <th scope="col">Accès sociétés</th><th scope="col">Vue Groupe</th><th scope="col">Dernière connexion</th>
+        <th scope="col"><span class="visuellement-cache">Actions</span></th>
+      </tr></thead>
+      <tbody>
+        {% for l in lignes %}
+          <tr>
+            <td><strong>{{ l.u.get_full_name|default:l.u.username }}</strong><br><span class="aide">{{ l.u.email }}</span></td>
+            <td>{% if l.u.is_active %}<span class="statut statut--ok">Actif</span>{% else %}<span class="statut statut--alerte">Désactivé</span>{% endif %}</td>
+            <td>{% if l.mfa %}<span class="statut statut--ok">✔<span class="visuellement-cache"> activée</span></span>{% else %}<span class="statut statut--alerte">✖<span class="visuellement-cache"> manquante</span></span>{% endif %}</td>
+            <td>{% if l.u.role_global %}{{ l.u.get_role_global_display }}{% else %}—{% endif %}</td>
+            <td>
+              <div class="badges">
+                {% for b in l.badges %}
+                  <span class="badge-acces badge-acces--{{ b.etat }}">
+                    <span class="point serie-{{ b.code }}" aria-hidden="true"></span>{{ b.libelle }}
+                    {% if b.etat == "expiree" %}<small>expiré le {{ b.date_fin|date:"d/m/Y" }}</small>
+                    {% elif b.etat == "future" %}<small>dès le {{ b.date_debut|date:"d/m/Y" }}</small>
+                    {% elif b.date_fin %}<small>jusqu'au {{ b.date_fin|date:"d/m/Y" }}</small>{% endif %}
+                  </span>
+                {% empty %}<span class="aide">—</span>{% endfor %}
+              </div>
+            </td>
+            <td>
+              {% if l.groupe %}
+                <span class="badge-acces badge-acces--{{ l.groupe.etat }}">{{ l.groupe.texte }}
+                  {% if l.groupe.detail %}<span title="Accès au détail autorisé" aria-hidden="true">🔍</span><span class="visuellement-cache"> (détail autorisé)</span>{% endif %}
+                  {% if l.groupe.etat == "expiree" %}<small>expiré le {{ l.groupe.date_fin|date:"d/m/Y" }}</small>
+                  {% elif l.groupe.etat == "future" %}<small>dès le {{ l.groupe.date_debut|date:"d/m/Y" }}</small>
+                  {% elif l.groupe.date_fin %}<small>jusqu'au {{ l.groupe.date_fin|date:"d/m/Y" }}</small>{% endif %}
+                </span>
+              {% else %}—{% endif %}
+            </td>
+            <td>{% if l.u.last_login %}{{ l.u.last_login|date:"d/m/Y H:i" }}{% else %}<span class="aide">jamais</span>{% endif %}</td>
+            <td><a class="btn btn--secondaire btn--petit" href="{% url 'interface:habilitation_fiche' l.u.pk %}">Gérer<span class="visuellement-cache"> {{ l.u.get_full_name|default:l.u.username }}</span></a></td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="8" class="vide">Aucun utilisateur ne correspond à ces filtres.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

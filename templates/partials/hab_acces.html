@@ -1,0 +1,19 @@
+{% if form_acces.errors %}
+  <ul class="erreurs-formulaire">{% for champ, erreurs in form_acces.errors.items %}{% for e in erreurs %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>
+{% endif %}
+<div class="cadre-tableau">
+  <table class="tableau tableau--simple">
+    <caption class="visuellement-cache">Rôle de la personne sur chaque société</caption>
+    <thead><tr><th scope="col">Société</th><th scope="col">Rôle</th><th scope="col">Valable à partir du</th><th scope="col">Valable jusqu'au</th></tr></thead>
+    <tbody>
+      {% for s, role, debut, fin in form_acces.lignes %}
+        <tr>
+          <th scope="row"><span class="cellule-societe"><span class="point serie-{{ s.code }}" aria-hidden="true"></span>{{ s.nom }}</span></th>
+          <td><label class="visuellement-cache" for="{{ role.id_for_label }}">Rôle sur {{ s.nom }}</label>{{ role }}</td>
+          <td><label class="visuellement-cache" for="{{ debut.id_for_label }}">{{ s.nom }} : valable à partir du</label>{{ debut }}</td>
+          <td><label class="visuellement-cache" for="{{ fin.id_for_label }}">{{ s.nom }} : valable jusqu'au</label>{{ fin }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

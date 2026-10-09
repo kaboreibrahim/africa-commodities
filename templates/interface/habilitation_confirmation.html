@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titre %}Confirmer les changements{% endblock %}
+{% block sous_titre %}Administration — confirmation{% endblock %}
+{% block contenu %}
+  {% include "partials/hab_nav.html" %}
+  <section class="carte" aria-labelledby="titre-confirmation">
+    <h2 id="titre-confirmation">Confirmer les changements pour {{ cible.get_full_name|default:cible.username }}</h2>
+    <p>Vous allez :</p>
+    <ul class="resume-changements">{% for t in textes %}<li>{{ t }}</li>{% endfor %}</ul>
+    <form method="post" action="{% url 'interface:habilitation_fiche' cible.pk %}">
+      {% csrf_token %}
+      {% for nom, valeur in champs %}<input type="hidden" name="{{ nom }}" value="{{ valeur }}">{% endfor %}
+      <input type="hidden" name="etape" value="confirmer">
+      <div class="champ">
+        <label for="id_motif_confirmation">Motif{% if motif_obligatoire %} (obligatoire){% else %} (facultatif){% endif %}</label>
+        <input type="text" id="id_motif_confirmation" name="motif" maxlength="255" value="{{ motif }}" {% if motif_obligatoire %}required{% endif %} autofocus
+               {% if erreur_motif %}aria-invalid="true" aria-describedby="erreur-motif"{% endif %}>
+        {% if erreur_motif %}<p class="erreur-champ" id="erreur-motif" role="alert">{{ erreur_motif }}</p>{% endif %}
+      </div>
+      <div class="formulaire__actions">
+        <button type="submit">✔ Confirmer</button>
+        <a class="btn btn--secondaire" href="{% url 'interface:habilitation_fiche' cible.pk %}">Annuler</a>
+      </div>
+    </form>
+    <p class="aide">Les changements prennent effet à la prochaine requête de la personne ; un retrait ferme ses sessions. Tout est tracé dans le journal de sécurité.</p>
+  </section>
+{% endblock %}

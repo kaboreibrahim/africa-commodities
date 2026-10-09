@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block titre %}Nouvel utilisateur{% endblock %}
+{% block sous_titre %}Administration — nouvel utilisateur{% endblock %}
+{% block contenu %}
+  {% include "partials/hab_nav.html" %}
+  <form method="post" action="{% url 'interface:habilitation_nouveau' %}">
+    {% csrf_token %}
+    <section class="carte" aria-labelledby="titre-compte">
+      <h2 id="titre-compte">Compte</h2>
+      {% if form_compte.errors %}
+        <ul class="erreurs-formulaire">{% for champ, erreurs in form_compte.errors.items %}{% for e in erreurs %}<li>{{ e }}</li>{% endfor %}{% endfor %}</ul>
+      {% endif %}
+      <div class="formulaire">
+        <div class="champ"><label for="id_prenom">{{ form_compte.prenom.label }}</label>{{ form_compte.prenom }}</div>
+        <div class="champ"><label for="id_nom">{{ form_compte.nom.label }}</label>{{ form_compte.nom }}</div>
+        <div class="champ"><label for="id_email">{{ form_compte.email.label }}</label>{{ form_compte.email }}</div>
+        <div class="champ"><label for="id_telephone">{{ form_compte.telephone.label }}</label>{{ form_compte.telephone }}</div>
+        <div class="champ"><label for="id_role_global">{{ form_compte.role_global.label }}</label>{{ form_compte.role_global }}</div>
+      </div>
+      <p class="aide">Un mot de passe provisoire sera généré et affiché une seule fois ; la personne devra le changer à sa première connexion.</p>
+    </section>
+    <section class="carte" aria-labelledby="titre-acces">
+      <h2 id="titre-acces">Accès par société</h2>
+      {% include "partials/hab_acces.html" %}
+    </section>
+    <section class="carte" aria-labelledby="titre-groupe">
+      <h2 id="titre-groupe">Vue Groupe</h2>
+      {% include "partials/hab_groupe.html" %}
+    </section>
+    <div class="formulaire__actions"><button type="submit">Créer le compte</button></div>
+  </form>
+{% endblock %}

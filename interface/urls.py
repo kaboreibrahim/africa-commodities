@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, views_clients, views_lignes
+from . import views, views_clients, views_habilitations, views_lignes
 
 app_name = "interface"
 
@@ -10,6 +10,11 @@ urlpatterns = [
     path("theme/<slug:code>.css", views.theme_css, name="theme"),
     path("groupe/", views.VueGroupeView.as_view(), name="groupe"),
     path("regle/", views.RegleView.as_view(), name="regle"),
+    path("administration/habilitations/", views_habilitations.UtilisateursView.as_view(), name="habilitations"),
+    path("administration/habilitations/matrice/", views_habilitations.MatriceView.as_view(), name="habilitations_matrice"),
+    path("administration/habilitations/nouveau/", views_habilitations.NouvelUtilisateurView.as_view(),
+         name="habilitation_nouveau"),
+    path("administration/habilitations/<int:pk>/", views_habilitations.FicheView.as_view(), name="habilitation_fiche"),
     path("s/<slug:code_societe>/", views.TableauDeBordView.as_view(), name="tableau"),
     path("s/<slug:code_societe>/objectif/", views.ObjectifView.as_view(), name="objectif"),
     path("s/<slug:code_societe>/depenses/", views.DepensesView.as_view(), name="depenses"),

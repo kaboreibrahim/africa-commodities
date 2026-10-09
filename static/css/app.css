@@ -412,3 +412,33 @@ progress.barre--charges { color: var(--c-charges); }
 
 /* Vue Groupe : 7 indicateurs sur une ligne en grand écran */
 @media (min-width: 1200px) { .kpis--7 { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+
+/* ---------- Habilitations (admin groupe) ---------- */
+.badges { display: flex; flex-wrap: wrap; gap: 4px; }
+.badge-acces {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: var(--c-claire); color: var(--navy); border: 1px solid var(--bordure, #D5DDD8); white-space: nowrap;
+}
+.badge-acces small { font-weight: 400; color: var(--gris); }
+.badge-acces--expiree { background: var(--fond); color: var(--gris); text-decoration: line-through; }
+.badge-acces--expiree small { text-decoration: none; display: inline-block; }
+.badge-acces--future { background: var(--blanc); border-style: dashed; color: var(--gris); }
+.case { display: flex; align-items: center; gap: 8px; margin: 6px 0; font-size: 13px; font-weight: 400; color: var(--navy); cursor: pointer; }
+.case input { width: auto; min-height: 0; margin: 0; }
+.cases-societes { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.hab-groupe fieldset { border: 0; padding: 0; margin: 10px 0; }
+.hab-groupe legend { padding: 0; }
+.tableau .c { text-align: center; }
+.lettre {
+  display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 4px; border-radius: 6px;
+  font-weight: 700; font-size: 13px; border: 1px solid transparent;
+}
+.lettre--A, .lettre--T { background: var(--c-principale); color: var(--blanc); }
+.lettre--R { background: #DCEFE0; color: #14522A; border-color: #14522A; }
+.lettre--S { background: #E3EEFA; color: #1A4F8B; border-color: #1A4F8B; }
+.lettre--L, .lettre--G { background: var(--fond); color: var(--navy); border-color: var(--gris); }
+.lettre--G { border-style: dashed; }
+.lettre--aucun { color: var(--gris); font-weight: 400; }
+.resume-changements { margin: 0 0 14px; padding-left: 20px; }
+.resume-changements li { margin: 4px 0; }
+.mot-de-passe-provisoire code { font-size: 20px; padding: 10px 14px; background: var(--fond); border-radius: 8px; user-select: all; }

@@ -1,0 +1,5 @@
+<nav class="sous-nav" aria-label="Habilitations">
+  <a href="{% url 'interface:habilitations' %}" {% if onglet_habilitations == 'utilisateurs' %}aria-current="page"{% endif %}>Utilisateurs</a>
+  <a href="{% url 'interface:habilitations_matrice' %}" {% if onglet_habilitations == 'matrice' %}aria-current="page"{% endif %}>Matrice</a>
+  <a href="{% url 'interface:habilitation_nouveau' %}" {% if onglet_habilitations == 'nouveau' %}aria-current="page"{% endif %}>Nouvel utilisateur</a>
+</nav>
