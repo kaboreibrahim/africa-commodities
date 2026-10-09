@@ -1,0 +1,15 @@
+{% load format_fr %}
+<div class="param__corps">
+  <span class="param__icone ico ico-trophee" aria-hidden="true"></span>
+  <div>
+    <p class="param__l">Objectif {{ mois|de_mois }}</p>
+    <p class="param__v">{{ ind.objectif|fcfa }}</p>
+    <p class="param__s">{% if ind.objectif_atteint %}<span class="ok"><span class="ico ico-ok" aria-hidden="true"></span> Atteint</span>{% else %}{{ ind.progression|pct }} atteint{% endif %}</p>
+  </div>
+</div>
+{% if peut_gerer %}
+  <a class="btn btn--secondaire btn--petit" href="{% url 'interface:objectif' societe.code %}"
+     hx-get="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">
+    <span class="ico ico-modifier" aria-hidden="true"></span>Modifier l'objectif
+  </a>
+{% endif %}

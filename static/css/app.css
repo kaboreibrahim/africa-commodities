@@ -128,6 +128,7 @@ img { max-width: 100%; }
 .ico-copier { --i: url("../img/icones/copy.svg"); }
 .ico-telecharger { --i: url("../img/icones/download.svg"); }
 .ico-cadenas { --i: url("../img/icones/lock.svg"); }
+.ico-depenses { --i: url("../img/icones/wallet.svg"); }
 
 /* ---------- 4. Mise en page : menu latéral + zone principale ---------- */
 .app { display: grid; grid-template-columns: var(--largeur-lateral) minmax(0, 1fr); min-height: 100vh; }
@@ -290,6 +291,19 @@ progress.barre--charges::-moz-progress-bar { background: var(--c-charges); }
 
 .objectif-zone { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .objectif-zone__valeur { font-weight: 700; }
+/* Cartes « objectif » et « dépenses » du mois (page tableau de bord) */
+.params { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-bottom: 18px; }
+.param {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-width: 0;
+  background: var(--blanc); border: 1px solid var(--bord); border-radius: var(--rayon); box-shadow: var(--ombre); padding: 14px 16px;
+}
+.param__corps { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.param__icone { width: 30px; height: 30px; color: var(--acr-or); }
+.param p { margin: 0; }
+.param__l { font-size: 12px; color: var(--gris); font-weight: 600; }
+.param__v { font: 700 20px/1.25 var(--police-titre); }
+.param__v--vide { font-size: 16px; color: var(--gris); font-weight: 600; }
+.param__s { font-size: 12px; color: var(--gris); }
 .formulaire-objectif { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .formulaire-objectif .champ { min-width: 200px; }
 .parametres-mois { display: flex; gap: 8px 28px; flex-wrap: wrap; margin-bottom: 14px; }
@@ -467,6 +481,10 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
 .page-erreur { display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
 .carte--erreur { max-width: 480px; text-align: center; border-top: 4px solid var(--acr-or); }
 .page-erreur__code { font: 800 42px var(--police-titre); color: var(--c-foncee); margin: 0; }
+
+/* Tableau de bord : 6 indicateurs (3 × 2, puis 6 × 1 en très grand écran) */
+@media (min-width: 900px) { .kpis--6 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1560px) { .kpis--6 { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
 
 /* Vue Groupe : 7 indicateurs sur une ligne en grand écran */
 @media (min-width: 1280px) { .kpis--7 { grid-template-columns: repeat(7, minmax(0, 1fr)); } }

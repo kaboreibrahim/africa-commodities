@@ -20,6 +20,11 @@
   }
   function pct(v) { return DECIMAL.format(v) + NBSP + "%"; }
 
+  var POLICE = "Inter, 'Segoe UI', system-ui, Arial, sans-serif";
+  function mouvementReduit() {
+    return window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  }
+
   function variable(nom, defaut) {
     var v = window.getComputedStyle(document.documentElement).getPropertyValue(nom).trim();
     return v || defaut;
@@ -40,12 +45,12 @@
       ctx.save();
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillStyle = variable("--navy", "#1A2B4A");
-      ctx.font = "700 20px 'Segoe UI', Roboto, Arial, sans-serif";
+      ctx.fillStyle = variable("--navy", "#14231A");
+      ctx.font = "700 20px Montserrat, 'Segoe UI', Arial, sans-serif";
       ctx.fillText(options.texte, x, y - 8);
       if (options.sousTitre) {
         ctx.fillStyle = variable("--gris", "#5B6472");
-        ctx.font = "11px 'Segoe UI', Roboto, Arial, sans-serif";
+        ctx.font = "11px " + POLICE;
         ctx.fillText(options.sousTitre, x, y + 14);
       }
       ctx.restore();
@@ -53,10 +58,11 @@
   };
 
   function optionsCommunes() {
+    if (window.Chart) { window.Chart.defaults.font.family = POLICE; }
     return {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 400 },
+      animation: { duration: mouvementReduit() ? 0 : 400 },
       plugins: { legend: { display: false } }
     };
   }

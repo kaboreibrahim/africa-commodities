@@ -1,0 +1,23 @@
+{% load format_fr %}
+<div class="param__corps">
+  <span class="param__icone ico ico-depenses" aria-hidden="true"></span>
+  <div>
+    <p class="param__l">Dépenses {{ mois|de_mois }}</p>
+    {% if ind.couverture.depenses_saisies %}
+      <p class="param__v">{{ ind.depenses|fcfa }}</p>
+      <p class="param__s">
+        {% if ind.couverture.couvert %}<span class="statut statut--ok"><span class="ico ico-ok" aria-hidden="true"></span> Couvertes par les charges</span>
+        {% else %}<span class="statut statut--alerte"><span class="ico ico-alerte" aria-hidden="true"></span> Reste à couvrir {{ ind.couverture.reste_a_couvrir|fcfa }}</span>{% endif %}
+      </p>
+    {% else %}
+      <p class="param__v param__v--vide">Non saisies</p>
+      <p class="param__s">Saisissez-les pour suivre la couverture des charges.</p>
+    {% endif %}
+  </div>
+</div>
+{% if peut_gerer %}
+  <a class="btn btn--secondaire btn--petit" href="{% url 'interface:depenses' societe.code %}"
+     hx-get="{% url 'interface:depenses' societe.code %}" hx-target="#zone-depenses">
+    <span class="ico ico-modifier" aria-hidden="true"></span>{% if ind.couverture.depenses_saisies %}Modifier les dépenses{% else %}Saisir les dépenses{% endif %}
+  </a>
+{% endif %}

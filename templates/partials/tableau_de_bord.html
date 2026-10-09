@@ -4,88 +4,25 @@
 
   {% if ind.objectif_atteint %}
     <div class="bandeau" role="status">
-      <span aria-hidden="true">🎉</span>
-      <span>Objectif {{ mois|de_mois }} atteint : {{ ind.marge|fcfa }} pour un objectif de {{ ind.objectif|fcfa }}</span>
+      <span class="ico ico-trophee" aria-hidden="true"></span>
+      <span>🎉 Objectif {{ mois|de_mois }} atteint : {{ ind.marge|fcfa }} pour un objectif de {{ ind.objectif|fcfa }}</span>
     </div>
   {% endif %}
 
   {% if ind.couverture.couvert %}
-    <p class="badge-statut badge-statut--ok" role="status"><span aria-hidden="true">✔</span> Charges du mois couvertes</p>
+    <p class="badge-statut badge-statut--ok" role="status"><span class="ico ico-ok" aria-hidden="true"></span> Charges du mois couvertes</p>
   {% endif %}
 
-  <div class="parametres-mois">
-    <div class="objectif-zone" id="zone-objectif">
-      <span>Objectif {{ mois|de_mois }} : <span class="objectif-zone__valeur">{{ ind.objectif|fcfa }}</span></span>
-      {% if peut_gerer %}
-        <a class="btn btn--secondaire btn--petit" href="{% url 'interface:objectif' societe.code %}"
-           hx-get="{% url 'interface:objectif' societe.code %}" hx-target="#zone-objectif">Modifier l'objectif</a>
-      {% endif %}
-    </div>
-    <div class="objectif-zone" id="zone-depenses">
-      <span>Dépenses du mois :
-        {% if ind.couverture.depenses_saisies %}<span class="objectif-zone__valeur">{{ ind.depenses|fcfa }}</span>
-        {% else %}<span class="statut statut--neutre">non saisies</span>{% endif %}</span>
-      {% if peut_gerer %}
-        <a class="btn btn--secondaire btn--petit" href="{% url 'interface:depenses' societe.code %}"
-           hx-get="{% url 'interface:depenses' societe.code %}" hx-target="#zone-depenses">{% if ind.couverture.depenses_saisies %}Modifier les dépenses{% else %}Saisir les dépenses{% endif %}</a>
-      {% endif %}
-    </div>
+  <div class="params">
+    <section class="param" id="zone-objectif" aria-label="Objectif du mois">
+      {% include "partials/_objectif.html" %}
+    </section>
+    <section class="param" id="zone-depenses" aria-label="Dépenses du mois">
+      {% include "partials/_depenses.html" %}
+    </section>
   </div>
 
-  <section class="kpis" aria-label="Indicateurs {{ mois|de_mois }}">
-    <div class="kpi">
-      <div class="kpi__l">Marge {{ mois|de_mois }}</div>
-      <div class="kpi__v">{{ ind.marge|fcfa }}</div>
-      <div class="kpi__s">Objectif : {{ ind.objectif|fcfa }}</div>
-      <progress class="barre" max="100" value="{% if ind.progression > 100 %}100{% else %}{{ ind.progression|floatformat:'0u' }}{% endif %}"
-                aria-label="Progression vers l'objectif">{{ ind.progression|pct }}</progress>
-      <div class="kpi__s">{{ ind.progression|pct }} atteint</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi__l">{{ societe.unite|majuscule_initiale }}s du mois</div>
-      <div class="kpi__v">{{ ind.quantite|nombre }}</div>
-      <div class="kpi__s">Marge moyenne : {{ ind.marge_moyenne|fcfa }}</div>
-      {% if ind.objectif_atteint %}
-        <div class="kpi__s ok">✔ Objectif atteint</div>
-      {% else %}
-        <div class="kpi__s">≈ {{ ind.unites_restantes|nombre }} {{ societe.unite }}(s) restant(s)</div>
-      {% endif %}
-    </div>
-    {% with c=ind.couverture %}
-    <div class="kpi kpi--charges">
-      <div class="kpi__l">Couverture des charges ({% if ind.pct_charges is not None %}{{ ind.pct_charges|pct }}{% else %}{{ regle_pied.pct_charges|pct }}{% endif %} de la marge)</div>
-      <div class="kpi__v">{{ c.part_charges|fcfa }}</div>
-      {% if c.depenses_saisies %}
-        <div class="kpi__s">Dépenses : {{ c.depenses|fcfa }}</div>
-        <progress class="barre barre--charges" max="100" value="{% if c.taux > 100 %}100{% else %}{{ c.taux|floatformat:'0u' }}{% endif %}"
-                  aria-label="Taux de couverture des charges">{{ c.taux|pct }}</progress>
-        <div class="kpi__s">Taux de couverture : {{ c.taux|pct }}</div>
-        {% if c.couvert %}
-          <div class="kpi__s statut statut--ok"><span aria-hidden="true">✔</span> Charges couvertes — excédent {{ c.excedent|fcfa }}</div>
-        {% else %}
-          <div class="kpi__s statut statut--alerte"><span aria-hidden="true">⚠</span> Reste à couvrir {{ c.reste_a_couvrir|fcfa }}{% if c.unites_restantes %} — ≈ {{ c.unites_restantes|nombre }} {{ societe.unite }}(s){% endif %}</div>
-        {% endif %}
-      {% else %}
-        <div class="kpi__s statut statut--neutre">Dépenses non saisies</div>
-      {% endif %}
-    </div>
-    {% endwith %}
-    <div class="kpi kpi--ac">
-      <div class="kpi__l">Africa Commodities</div>
-      <div class="kpi__v texte-ac">{{ ind.africa_commodities|fcfa }}</div>
-      <div class="kpi__s">{% if ind.pct_africa_commodities is not None %}{{ ind.pct_africa_commodities|pct }}{% else %}{{ regle_pied.pct_africa_commodities|pct }}{% endif %} du reste après charges</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi__l">Risques + Provision</div>
-      <div class="kpi__v">{{ ind.risques_et_provision|fcfa }}</div>
-      <div class="kpi__s">Risques {{ ind.risques|fcfa }} + provision {{ ind.provision|fcfa }}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi__l">Comptes {{ societe.code|upper }} (disponible)</div>
-      <div class="kpi__v">{{ ind.comptes|fcfa }}</div>
-      <div class="kpi__s">Montant réellement disponible</div>
-    </div>
-  </section>
+  {% include "partials/_indicateurs.html" %}
 
   {{ graphiques|json_script:"donnees-graphiques" }}
 
