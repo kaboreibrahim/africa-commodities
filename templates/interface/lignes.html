@@ -27,7 +27,7 @@
   </section>
 
   {% if form %}
-    <dialog class="dialogue" id="dialogue-saisie" aria-labelledby="titre-saisie"{% if request.GET.nouveau or form.is_bound %} open{% endif %}>
+    <dialog class="dialogue" id="dialogue-saisie" aria-labelledby="titre-saisie"{% if request.GET.nouveau or form.is_bound %} data-ouvrir-auto{% endif %}>
       <div class="dialogue__corps">
         {% include "partials/ligne_form.html" %}
         {% if peut_gerer %}

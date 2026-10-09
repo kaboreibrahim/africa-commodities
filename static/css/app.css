@@ -428,7 +428,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 /* Bouton « Voir les dossiers » et fenêtre de saisie */
 .actions-page { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .form-saisie .dialogue__entete h2 { font-size: 17px; }
-dialog.dialogue[open]:not(:modal) { position: static; margin: 0 auto 18px; display: block; border: 1px solid var(--bord); }
+/* Sans JavaScript : la fenêtre demandée (?nouveau=1) s'affiche à plat sur la page. Avec JavaScript, elle est toujours modale. */
+html:not(.js) dialog.dialogue[data-ouvrir-auto] { display: block; position: static; margin: 0 auto 18px; border: 1px solid var(--bord); }
 dialog.dialogue { max-height: calc(100vh - 24px); overflow-y: auto; }
 
 /* Lignes et clients : tableau sur ordinateur, cartes sur téléphone */

@@ -144,15 +144,24 @@
     }
   });
   function ouvrirDialogue(dialogue) {
-    if (!dialogue || dialogue.matches(":modal")) { return; }
-    dialogue.removeAttribute("open");  // ouverte « à plat » sans JavaScript : on la rouvre en modale
-    dialogue.showModal();
+    if (!dialogue) { return; }
+    // Toujours en modale : si la fenêtre est restée ouverte « à plat » (page restaurée, ancienne version…), on la referme d'abord.
+    try {
+      if (dialogue.open && !dialogue.matches(":modal")) { dialogue.close(); }
+      if (!dialogue.open) { dialogue.showModal(); }
+    } catch (erreur) {
+      dialogue.setAttribute("open", "");
+    }
     var premier = dialogue.querySelector("input:not([type=hidden]), select, textarea");
     if (premier) { premier.focus(); }
   }
-  document.addEventListener("DOMContentLoaded", function () {
-    Array.prototype.forEach.call(document.querySelectorAll("dialog[open]"), ouvrirDialogue);
-  });
+  function ouvrirDialoguesDemandees() {
+    Array.prototype.forEach.call(document.querySelectorAll("dialog[data-ouvrir-auto], dialog[open]"), function (d) {
+      if (!d.matches(":modal")) { ouvrirDialogue(d); }
+    });
+  }
+  document.addEventListener("DOMContentLoaded", ouvrirDialoguesDemandees);
+  window.addEventListener("pageshow", function (evt) { if (evt.persisted) { ouvrirDialoguesDemandees(); } });
   document.addEventListener("click", function (evt) {
     var ouvreur = evt.target.closest("[data-ouvrir-dialogue]");
     if (ouvreur) {

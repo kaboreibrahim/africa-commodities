@@ -136,7 +136,11 @@ class LignesView(LignesMixin, PageSocieteMixin, TemplateView):
                                                "marge_unitaire": ligne.marge_unitaire, "quantite": 1})
             reponse = self.reponse_enregistrement(self.render_fragment_formulaire(suivant), ligne, seuils, message)
             return declencher(reponse, fermerDialogue=True)  # la fenêtre de saisie se referme, la liste se rafraîchit
-        return self.reponse_enregistrement(redirect(request.get_full_path()), ligne, seuils, message)
+        # Sans JavaScript : retour à la liste (mêmes filtres), fenêtre de saisie refermée.
+        parametres = request.GET.copy()
+        parametres.pop("nouveau", None)
+        retour = request.path + (f"?{parametres.urlencode()}" if parametres else "")
+        return self.reponse_enregistrement(redirect(retour), ligne, seuils, message)
 
     def render_fragment_formulaire(self, form, status=200):
         contexte = {"form": form, "societe": self.societe, "regle_apercu": regle_en_vigueur()}
