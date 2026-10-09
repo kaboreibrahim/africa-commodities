@@ -2,6 +2,7 @@
    Suivi des marges – comportements communs (aucun script inline : CSP stricte).
    - toasts (messages Django + évènement HTMX « toast ») ;
    - sélecteur de mois ;
+   - menu latéral (tiroir sur mobile) et menus déroulants ;
    - boîte de dialogue de modification ;
    - célébration de l'objectif (évènement HTMX « objectifAtteint » ou message Django « objectif »).
    ========================================================================== */
@@ -91,6 +92,40 @@
   }
 
   document.addEventListener("DOMContentLoaded", initialiser);
+
+  /* ---------- Menu latéral (tiroir sur mobile) et menus déroulants ---------- */
+  function basculerMenu(ouvert) {
+    var appli = document.getElementById("app");
+    if (!appli) { return; }
+    appli.classList.toggle("menu-ouvert", ouvert);
+    Array.prototype.forEach.call(document.querySelectorAll("[data-ouvrir-menu]"), function (b) {
+      b.setAttribute("aria-expanded", ouvert ? "true" : "false");
+    });
+    if (ouvert) {
+      var premier = document.querySelector("#menu-lateral a");
+      if (premier) { premier.focus(); }
+    }
+  }
+  document.addEventListener("click", function (evt) {
+    if (evt.target.closest("[data-ouvrir-menu]")) {
+      basculerMenu(!document.getElementById("app").classList.contains("menu-ouvert"));
+    } else if (evt.target.closest("[data-fermer-menu]") || evt.target.closest("#menu-lateral a")) {
+      basculerMenu(false);
+    }
+    // Menu du compte : se ferme au clic en dehors
+    Array.prototype.forEach.call(document.querySelectorAll("details[data-menu][open]"), function (d) {
+      if (!d.contains(evt.target)) { d.removeAttribute("open"); }
+    });
+  });
+  document.addEventListener("keydown", function (evt) {
+    if (evt.key !== "Escape") { return; }
+    basculerMenu(false);
+    Array.prototype.forEach.call(document.querySelectorAll("details[data-menu][open]"), function (d) {
+      d.removeAttribute("open");
+      var resume = d.querySelector("summary");
+      if (resume) { resume.focus(); }
+    });
+  });
 
   /* ---------- Lignes de tableau cliquables (Vue Groupe) ---------- */
   document.addEventListener("click", function (evt) {

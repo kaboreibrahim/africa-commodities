@@ -4,8 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0B3D24">
   <meta name="htmx-config" content='{"allowEval":false,"allowScriptTags":false,"includeIndicatorStyles":false,"disableInheritance":true,"responseHandling":[{"code":"204","swap":false},{"code":"[23]..","swap":true},{"code":"422","swap":true},{"code":"[45]..","swap":false,"error":true}]}'>
   <title>{% block titre %}{% if societe %}{{ societe.code|upper }}{% else %}Groupe{% endif %}{% endblock %} – Suivi des marges</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="{% static 'fonts/montserrat-latin-700-normal.woff2' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="{% static 'fonts/inter-latin-400-normal.woff2' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="stylesheet" href="{{ url_theme }}">
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
@@ -16,74 +21,68 @@
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-inherit="hx-headers">
   <a class="lien-evitement" href="#contenu">Aller au contenu</a>
 
-  <header class="entete">
-    <a class="entete__marque" href="{% if societe %}{% url 'interface:tableau' societe.code %}{% else %}{% url 'interface:accueil' %}{% endif %}">
-      {% if logo_url %}
-        <img class="entete__logo" src="{{ logo_url }}" alt="Logo {{ societe.nom }}">
-      {% else %}
-        <span class="badge-logo" aria-hidden="true">{% if societe %}{{ societe.code|upper }}{% else %}GRP{% endif %}</span>
-      {% endif %}
-      <span>
-        <span class="entete__titre">{% if societe %}{{ societe.nom }}{% else %}Groupe{% endif %} – Suivi des marges</span>
-        <span class="entete__sous-titre">{% block sous_titre %}{% if societe %}Enregistrement des {{ societe.libelle_ligne_pluriel }} et répartition automatique de la marge{% else %}Consolidation des sociétés du groupe{% endif %}{% endblock %}</span>
-      </span>
-    </a>
+  <div class="app" id="app">
+    {% include "partials/_lateral.html" %}
+    <div class="voile" data-fermer-menu></div>
 
-    <form class="selecteur-mois" method="get" action="{{ url_courante }}" data-selecteur-mois>
-      <a class="btn btn--icone" href="?mois={{ mois_precedent|iso_mois }}" title="Mois précédent" aria-label="Mois précédent ({{ mois_precedent|mois_long }})">‹</a>
-      <label class="visuellement-cache" for="choix-mois">Mois de suivi</label>
-      <input type="month" id="choix-mois" name="mois" value="{{ mois|iso_mois }}" min="2000-01" max="2100-12" required>
-      <button type="submit" class="btn btn--secondaire js-masque">Afficher</button>
-      <a class="btn btn--icone" href="?mois={{ mois_suivant|iso_mois }}" title="Mois suivant" aria-label="Mois suivant ({{ mois_suivant|mois_long }})">›</a>
-    </form>
+    <div class="principal">
+      <header class="haut">
+        <button type="button" class="btn btn--icone haut__menu" data-ouvrir-menu aria-controls="menu-lateral" aria-expanded="false" aria-label="Ouvrir le menu">
+          <span class="ico ico-menu" aria-hidden="true"></span>
+        </button>
 
-    <details class="menu-utilisateur">
-      <summary>
-        <span class="menu-utilisateur__nom">{{ user.get_full_name|default:user.email }}</span>
-        {% if role_libelle %}<span class="menu-utilisateur__role">{{ role_libelle }}</span>{% endif %}
-      </summary>
-      <ul>
-        <li><a href="{% url 'mfa_index' %}">Double authentification</a></li>
-        <li><a href="{% url 'account_change_password' %}">Changer de mot de passe</a></li>
-        <li><a href="{% url 'interface:regle' %}">Règle de répartition</a></li>
-        {% if peut_administrer %}<li><a href="{% url 'admin:index' %}">Administration</a></li>{% endif %}
-        {% if peut_administrer %}<li><a href="{% url 'interface:habilitations' %}">Habilitations</a></li>{% endif %}
-        <li><a href="{% url 'account_logout' %}">Déconnexion</a></li>
-      </ul>
-    </details>
-  </header>
+        {% if societe and logo_url %}<img class="haut__logo" src="{{ logo_url }}" alt="Logo {{ societe.nom }}" height="40">{% endif %}
+        <div class="haut__titres">
+          <h1 class="haut__titre">Pilotage des marges</h1>
+          <p class="haut__sous-titre">{% block sous_titre %}{% if societe %}{{ societe.nom }} ({{ societe.code|upper }}){% else %}Consolidation des sociétés du groupe{% endif %}{% endblock %}</p>
+        </div>
 
-  <nav class="onglets" id="onglets" aria-label="Sociétés"
-       hx-get="{% url 'interface:onglets' %}?actif={{ societe.code|default:'' }}&amp;section={{ section }}"
-       hx-trigger="lignesModifiees from:body, objectifModifie from:body" hx-swap="innerHTML">
-    {% include "partials/onglets.html" %}
-  </nav>
+        <form class="selecteur-mois" method="get" action="{{ url_courante }}" data-selecteur-mois>
+          <a class="btn btn--icone" href="?mois={{ mois_precedent|iso_mois }}" title="Mois précédent" aria-label="Mois précédent ({{ mois_precedent|mois_long }})"><span class="ico ico-gauche" aria-hidden="true"></span></a>
+          <span class="selecteur-mois__champ">
+            <span class="ico ico-calendrier" aria-hidden="true"></span>
+            <label class="visuellement-cache" for="choix-mois">Mois de suivi</label>
+            <input type="month" id="choix-mois" name="mois" value="{{ mois|iso_mois }}" min="2000-01" max="2100-12" required>
+          </span>
+          <button type="submit" class="btn btn--secondaire js-masque">Afficher</button>
+          <a class="btn btn--icone" href="?mois={{ mois_suivant|iso_mois }}" title="Mois suivant" aria-label="Mois suivant ({{ mois_suivant|mois_long }})"><span class="ico ico-droite" aria-hidden="true"></span></a>
+        </form>
 
-  {% if societe %}
-    <nav class="sous-nav" aria-label="Pages de {{ societe.nom }}">
-      <a href="{% url 'interface:tableau' societe.code %}" {% if section == 'tableau' %}aria-current="page"{% endif %}>Tableau de bord</a>
-      <a href="{% url 'interface:lignes' societe.code %}" {% if section == 'lignes' %}aria-current="page"{% endif %}>{{ societe.libelle_ligne_pluriel|majuscule_initiale }}</a>
-      <a href="{% url 'interface:clients' societe.code %}" {% if section == 'clients' %}aria-current="page"{% endif %}>Clients</a>
-      {% if peut_gerer %}<a href="{% url 'interface:corbeille' societe.code %}" {% if section == 'corbeille' %}aria-current="page"{% endif %}>Corbeille</a>{% endif %}
-    </nav>
-  {% endif %}
+        <details class="menu-utilisateur" data-menu>
+          <summary>
+            <span class="avatar" aria-hidden="true">{{ user.get_full_name|default:user.email|slice:":1"|upper }}</span>
+            <span class="menu-utilisateur__texte">
+              <span class="menu-utilisateur__nom">{{ user.get_full_name|default:user.email }}</span>
+              {% if role_libelle %}<span class="menu-utilisateur__role">{{ role_libelle }}</span>{% endif %}
+            </span>
+            <span class="ico ico-bas" aria-hidden="true"></span>
+            <span class="visuellement-cache">Menu du compte</span>
+          </summary>
+          <ul>
+            <li><a href="{% url 'mfa_index' %}"><span class="ico ico-cadenas" aria-hidden="true"></span>Double authentification</a></li>
+            <li><a href="{% url 'account_change_password' %}"><span class="ico ico-compte" aria-hidden="true"></span>Changer de mot de passe</a></li>
+            <li><a href="{% url 'interface:regle' %}"><span class="ico ico-regle" aria-hidden="true"></span>Règle de répartition</a></li>
+            {% if peut_administrer %}<li><a href="{% url 'interface:habilitations' %}"><span class="ico ico-habilitations" aria-hidden="true"></span>Habilitations</a></li>{% endif %}
+            {% if peut_administrer %}<li><a href="{% url 'admin:index' %}"><span class="ico ico-societes" aria-hidden="true"></span>Administration</a></li>{% endif %}
+            <li><a href="{% url 'account_logout' %}"><span class="ico ico-sortie" aria-hidden="true"></span>Déconnexion</a></li>
+          </ul>
+        </details>
+      </header>
 
-  <main class="contenu" id="contenu" tabindex="-1">
-    {% block contenu %}{% endblock %}
-  </main>
+      <main class="contenu" id="contenu" tabindex="-1">
+        {% block contenu %}{% endblock %}
+      </main>
 
-  <footer class="pied">
-    <span>Suivi des marges – version {{ version }}</span>
-    {% if regle_pied %}
-      <a href="{% url 'interface:regle' %}">Règle en vigueur : {{ regle_pied.pct_charges|pct }} charges → {{ regle_pied.pct_africa_commodities|pct }} du reste à Africa Commodities → solde {{ regle_pied.parts_risques }}/{{ regle_pied.parts_provision }}/{{ regle_pied.parts_comptes }} (risques / provision / comptes)</a>
-    {% endif %}
-  </footer>
-
-  <div class="toasts" id="toasts" role="status" aria-live="polite">
-    {% for message in messages %}
-      <div class="toast toast--{{ message.level_tag }}" data-etiquettes="{{ message.extra_tags }}">{{ message }}</div>
-    {% endfor %}
+      <footer class="pied">
+        <span>Suivi des marges – version {{ version }} · © Africa Commodities &amp; Renewables Group</span>
+        {% if regle_pied %}
+          <a href="{% url 'interface:regle' %}">Règle en vigueur : {{ regle_pied.pct_charges|pct }} charges → {{ regle_pied.pct_africa_commodities|pct }} du reste à Africa Commodities → solde {{ regle_pied.parts_risques }}/{{ regle_pied.parts_provision }}/{{ regle_pied.parts_comptes }} (risques / provision / comptes)</a>
+        {% endif %}
+      </footer>
+    </div>
   </div>
+
+  {% include "partials/_toasts.html" %}
   <canvas id="confetti" class="confettis" aria-hidden="true" hidden></canvas>
 </body>
 </html>

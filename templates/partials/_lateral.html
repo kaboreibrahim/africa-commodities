@@ -1,0 +1,72 @@
+{% load static format_fr %}
+<aside class="lateral" id="menu-lateral" aria-label="Menu principal">
+  <a class="lateral__marque" href="{% url 'interface:accueil' %}">
+    <img class="lateral__logo" src="{% static 'img/embleme-groupe.png' %}" width="42" height="42" alt="">
+    <span class="lateral__nom">Africa Commodities<br>&amp; Renewables Group</span>
+  </a>
+
+  <nav aria-label="Navigation principale">
+    <ul class="lateral__nav">
+      <li>
+        <a class="lateral__lien" href="{% if societe %}{% url 'interface:tableau' societe.code %}{% else %}{% url 'interface:accueil' %}{% endif %}"
+           {% if societe and section == 'tableau' %}aria-current="page"{% endif %}>
+          <span class="ico ico-tableau" aria-hidden="true"></span>Tableau de bord
+        </a>
+      </li>
+      <li>
+        <details class="lateral__groupe" open>
+          <summary><span class="ico ico-societes" aria-hidden="true"></span>Sociétés<span class="ico ico-bas" aria-hidden="true"></span></summary>
+          <nav class="onglets" id="onglets" aria-label="Sociétés"
+               hx-get="{% url 'interface:onglets' %}?actif={{ societe.code|default:'' }}&amp;section={{ section }}"
+               hx-trigger="lignesModifiees from:body, objectifModifie from:body" hx-swap="innerHTML">
+            {% include "partials/onglets.html" %}
+          </nav>
+        </details>
+      </li>
+      {% if societe %}
+        <li>
+          <a class="lateral__lien" href="{% url 'interface:lignes' societe.code %}" {% if section == 'lignes' %}aria-current="page"{% endif %}>
+            <span class="ico ico-operations" aria-hidden="true"></span>{{ societe.libelle_ligne_pluriel|majuscule_initiale }}
+          </a>
+        </li>
+        <li>
+          <a class="lateral__lien" href="{% url 'interface:clients' societe.code %}" {% if section == 'clients' %}aria-current="page"{% endif %}>
+            <span class="ico ico-clients" aria-hidden="true"></span>Clients
+          </a>
+        </li>
+        {% if peut_gerer %}
+          <li>
+            <a class="lateral__lien" href="{% url 'interface:corbeille' societe.code %}" {% if section == 'corbeille' %}aria-current="page"{% endif %}>
+              <span class="ico ico-corbeille" aria-hidden="true"></span>Corbeille
+            </a>
+          </li>
+        {% endif %}
+      {% endif %}
+      {% if voit_groupe %}
+        <li>
+          <a class="lateral__lien" href="{% url 'interface:groupe' %}" {% if not societe and section == 'groupe' %}aria-current="page"{% endif %}>
+            <span class="ico ico-groupe" aria-hidden="true"></span>Vue Groupe
+          </a>
+        </li>
+      {% endif %}
+      <li>
+        <a class="lateral__lien" href="{% url 'interface:regle' %}" {% if section == 'regle' %}aria-current="page"{% endif %}>
+          <span class="ico ico-regle" aria-hidden="true"></span>Règle de répartition
+        </a>
+      </li>
+      {% if peut_administrer %}
+        <li>
+          <a class="lateral__lien" href="{% url 'interface:habilitations' %}" {% if section == 'habilitations' %}aria-current="page"{% endif %}>
+            <span class="ico ico-habilitations" aria-hidden="true"></span>Habilitations
+          </a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+
+  <div class="lateral__bas">
+    <a class="lateral__lien" href="{% url 'account_logout' %}">
+      <span class="ico ico-sortie" aria-hidden="true"></span>Déconnexion
+    </a>
+  </div>
+</aside>

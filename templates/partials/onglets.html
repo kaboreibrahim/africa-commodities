@@ -6,9 +6,3 @@
     {% if s.objectif_atteint %}<span class="onglet__ok" title="Objectif du mois atteint">✔<span class="visuellement-cache"> objectif atteint</span></span>{% endif %}
   </a>
 {% endfor %}
-{% if voit_groupe %}
-  <a class="onglet{% if not societe and section == 'groupe' %} onglet--actif{% endif %}" href="{% url 'interface:groupe' %}"
-     {% if not societe and section == 'groupe' %}aria-current="page"{% endif %}>
-    <span aria-hidden="true">📊</span> Vue Groupe
-  </a>
-{% endif %}

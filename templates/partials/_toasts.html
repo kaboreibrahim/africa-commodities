@@ -1,0 +1,5 @@
+<div class="toasts" id="toasts" role="status" aria-live="polite">
+  {% for message in messages %}
+    <div class="toast toast--{{ message.level_tag }}" data-etiquettes="{{ message.extra_tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
