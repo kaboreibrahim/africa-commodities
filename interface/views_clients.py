@@ -4,6 +4,7 @@ et retrait (suppression douce) pour le Responsable et l'Admin groupe, via societ
 """
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
@@ -31,7 +32,12 @@ class ClientsView(PageSocieteMixin, TemplateView):
 
     def get_context_data(self, form=None, **kwargs):
         contexte = super().get_context_data(**kwargs)
-        contexte["clients"] = clients_avec_nb_lignes(self.societe)
+        q = self.request.GET.get("q", "").strip()
+        clients = clients_avec_nb_lignes(self.societe)
+        if q:  # recherche instantanée (HTMX) ; sans JavaScript, le même filtre passe par un envoi classique
+            clients = clients.filter(Q(nom__icontains=q) | Q(telephone__icontains=q) | Q(email__icontains=q))
+        contexte["clients"] = clients
+        contexte["q"] = q
         contexte["form"] = form or ClientForm(auto_id="client_%s")
         return contexte
 

@@ -23,12 +23,12 @@
                 <form method="post" action="{% url 'interface:ligne_restaurer' societe.code l.pk %}"
                       hx-post="{% url 'interface:ligne_restaurer' societe.code l.pk %}" hx-target="closest tr" hx-swap="outerHTML">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn--secondaire btn--petit" aria-label="Restaurer {{ l.reference }} du {{ l.date|date:'d/m/Y' }}">Restaurer</button>
+                  <button type="submit" class="btn btn--secondaire btn--petit" aria-label="Restaurer {{ l.reference }} du {{ l.date|date:'d/m/Y' }}"><span class="ico ico-ok" aria-hidden="true"></span>Restaurer</button>
                 </form>
               </td>
             </tr>
           {% empty %}
-            <tr><td colspan="7" class="vide">La corbeille est vide.</td></tr>
+            <tr><td colspan="7"><div class="etat-vide"><span class="ico ico-corbeille" aria-hidden="true"></span><p><strong>La corbeille est vide.</strong></p><p>Les {{ societe.libelle_ligne_pluriel }} supprimés apparaissent ici et peuvent être restaurés.</p></div></td></tr>
           {% endfor %}
         </tbody>
       </table>

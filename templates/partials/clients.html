@@ -1,6 +1,6 @@
 {% load format_fr %}
 <section class="carte" id="clients">
-  <h2>Clients — {{ societe.nom }} <small>{{ clients|length }} client{{ clients|length|pluralize }}</small></h2>
+  <h2>Clients — {{ societe.nom }} <small>{{ clients|length }} client{{ clients|length|pluralize }}{% if q %} trouvé{{ clients|length|pluralize }}{% endif %}</small></h2>
   {% if peut_gerer %}
     <form class="ajout-rapide no-print" method="post" action="{% url 'interface:clients' societe.code %}"
           hx-post="{% url 'interface:clients' societe.code %}" hx-target="#clients" hx-swap="outerHTML">
@@ -8,41 +8,92 @@
       {% include "partials/champ.html" with champ=form.nom %}
       {% include "partials/champ.html" with champ=form.telephone %}
       {% include "partials/champ.html" with champ=form.email %}
-      <button type="submit">+ Ajouter le client</button>
+      <button type="submit"><span class="ico ico-plus" aria-hidden="true"></span>Ajouter le client</button>
     </form>
   {% endif %}
-  <div class="cadre-tableau">
-    <table class="tableau tableau--simple">
-      <caption class="visuellement-cache">Clients de {{ societe.nom }}</caption>
-      <thead><tr><th scope="col">Nom</th><th scope="col">Téléphone</th><th scope="col">E-mail</th>
-        <th scope="col" class="n">Lignes</th>{% if peut_gerer %}<th scope="col"><span class="visuellement-cache">Actions</span></th>{% endif %}</tr></thead>
-      <tbody>
+
+  <form class="filtres no-print" method="get" action="{% url 'interface:clients' societe.code %}" role="search"
+        hx-get="{% url 'interface:clients' societe.code %}" hx-target="#liste-clients" hx-select="#liste-clients" hx-swap="outerHTML"
+        hx-trigger="input changed delay:300ms from:#recherche-client, submit" hx-push-url="true">
+    <div class="champ">
+      <label for="recherche-client">Rechercher un client</label>
+      <input type="search" id="recherche-client" name="q" value="{{ q }}" placeholder="nom, téléphone ou e-mail" autocomplete="off">
+    </div>
+    <button type="submit" class="btn btn--secondaire js-masque">Rechercher</button>
+  </form>
+
+  <div id="liste-clients">
+    {% if clients %}
+      <div class="cadre-tableau vue-tableau">
+        <table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Clients de {{ societe.nom }}</caption>
+          <thead><tr><th scope="col">Nom</th><th scope="col">Téléphone</th><th scope="col">E-mail</th>
+            <th scope="col" class="n">Lignes</th>{% if peut_gerer %}<th scope="col"><span class="visuellement-cache">Actions</span></th>{% endif %}</tr></thead>
+          <tbody>
+            {% for c in clients %}
+              <tr>
+                <td><strong>{{ c.nom }}</strong></td>
+                <td>{{ c.telephone }}</td>
+                <td>{{ c.email }}</td>
+                <td class="n">{{ c.nb_lignes|nombre }}</td>
+                {% if peut_gerer %}
+                  <td>
+                    <div class="actions">
+                      <a class="btn btn--secondaire btn--petit" href="{% url 'interface:client_modifier' societe.code c.pk %}"
+                         hx-get="{% url 'interface:client_modifier' societe.code c.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
+                         aria-label="Modifier {{ c.nom }}"><span class="ico ico-modifier" aria-hidden="true"></span></a>
+                      <form method="post" action="{% url 'interface:client_retirer' societe.code c.pk %}"
+                            hx-post="{% url 'interface:client_retirer' societe.code c.pk %}" hx-target="closest tr" hx-swap="outerHTML"
+                            hx-confirm="{% if c.nb_lignes %}{{ c.nom }} est utilisé dans {{ c.nb_lignes }} ligne(s), les lignes existantes ne changent pas. Le retirer de la liste ?{% else %}Retirer {{ c.nom }} de la liste ?{% endif %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn--danger btn--petit" aria-label="Retirer {{ c.nom }}"><span class="ico ico-corbeille" aria-hidden="true"></span></button>
+                      </form>
+                    </div>
+                  </td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="cartes-lignes vue-cartes" aria-label="Clients de {{ societe.nom }}">
         {% for c in clients %}
-          <tr>
-            <td><strong>{{ c.nom }}</strong></td>
-            <td>{{ c.telephone }}</td>
-            <td>{{ c.email }}</td>
-            <td class="n">{{ c.nb_lignes|nombre }}</td>
+          <li class="carte-ligne">
+            <div class="carte-ligne__tete">
+              <div>
+                <p class="carte-ligne__ref">{{ c.nom }}</p>
+                {% if c.telephone %}<p class="carte-ligne__meta">{{ c.telephone }}</p>{% endif %}
+                {% if c.email %}<p class="carte-ligne__meta">{{ c.email }}</p>{% endif %}
+              </div>
+              <p class="carte-ligne__meta">{{ c.nb_lignes|nombre }} ligne{{ c.nb_lignes|pluralize }}</p>
+            </div>
             {% if peut_gerer %}
-              <td>
-                <div class="actions">
-                  <a class="btn btn--secondaire btn--petit" href="{% url 'interface:client_modifier' societe.code c.pk %}"
-                     hx-get="{% url 'interface:client_modifier' societe.code c.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
-                     aria-label="Modifier {{ c.nom }}">✎</a>
-                  <form method="post" action="{% url 'interface:client_retirer' societe.code c.pk %}"
-                        hx-post="{% url 'interface:client_retirer' societe.code c.pk %}" hx-target="closest tr" hx-swap="outerHTML"
-                        hx-confirm="{% if c.nb_lignes %}{{ c.nom }} est utilisé dans {{ c.nb_lignes }} ligne(s), les lignes existantes ne changent pas. Le retirer de la liste ?{% else %}Retirer {{ c.nom }} de la liste ?{% endif %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn--danger btn--petit" aria-label="Retirer {{ c.nom }}">✕</button>
-                  </form>
-                </div>
-              </td>
+              <div class="actions">
+                <a class="btn btn--secondaire btn--petit" href="{% url 'interface:client_modifier' societe.code c.pk %}"
+                   hx-get="{% url 'interface:client_modifier' societe.code c.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
+                   aria-label="Modifier {{ c.nom }}"><span class="ico ico-modifier" aria-hidden="true"></span>Modifier</a>
+                <form method="post" action="{% url 'interface:client_retirer' societe.code c.pk %}"
+                      hx-post="{% url 'interface:client_retirer' societe.code c.pk %}" hx-target="closest li" hx-swap="outerHTML"
+                      hx-confirm="{% if c.nb_lignes %}{{ c.nom }} est utilisé dans {{ c.nb_lignes }} ligne(s), les lignes existantes ne changent pas. Le retirer de la liste ?{% else %}Retirer {{ c.nom }} de la liste ?{% endif %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn--danger btn--petit" aria-label="Retirer {{ c.nom }}"><span class="ico ico-corbeille" aria-hidden="true"></span>Retirer</button>
+                </form>
+              </div>
             {% endif %}
-          </tr>
-        {% empty %}
-          <tr><td colspan="5" class="vide">Aucun client.{% if peut_gerer %} Ajoutez les clients de cette société ici : ils apparaîtront dans le formulaire de saisie.{% endif %}</td></tr>
+          </li>
         {% endfor %}
-      </tbody>
-    </table>
+      </ul>
+    {% else %}
+      <div class="etat-vide">
+        <span class="ico ico-clients" aria-hidden="true"></span>
+        {% if q %}
+          <p><strong>Aucun client ne correspond à « {{ q }} ».</strong></p>
+        {% else %}
+          <p><strong>Aucun client.</strong></p>
+          <p>{% if peut_gerer %}Ajoutez les clients de cette société ici : ils apparaîtront dans le formulaire de saisie.{% else %}Les clients sont ajoutés par le responsable de la société.{% endif %}</p>
+        {% endif %}
+      </div>
+    {% endif %}
   </div>
 </section>

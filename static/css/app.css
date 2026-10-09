@@ -422,6 +422,29 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .etat-vide .ico { width: 40px; height: 40px; color: var(--acr-or-clair); }
 .etat-vide p { margin: 0; max-width: 46ch; }
 
+/* Lignes et clients : tableau sur ordinateur, cartes sur téléphone */
+.vue-cartes { display: none; }
+.cartes-lignes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.carte-ligne { border: 1px solid var(--bord); border-radius: var(--rayon); padding: 12px 14px; background: var(--blanc); box-shadow: var(--ombre); }
+.carte-ligne--total { background: var(--c-claire); border-color: var(--c-principale); }
+.carte-ligne p { margin: 0; }
+.carte-ligne__tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.carte-ligne__ref { font-weight: 600; word-break: break-word; }
+.carte-ligne__meta { font-size: 12px; color: var(--gris); margin-top: 2px; }
+.carte-ligne__marge { font: 700 18px/1.2 var(--police-titre); white-space: nowrap; }
+.carte-ligne__detail { margin-top: 8px; font-size: 13px; }
+.carte-ligne__detail summary { cursor: pointer; min-height: 36px; display: flex; align-items: center; color: var(--c-principale); font-weight: 600; }
+.postes { list-style: none; margin: 4px 0; padding: 0; display: grid; gap: 4px; }
+.postes li { display: flex; align-items: center; gap: 8px; }
+.postes strong { margin-left: auto; }
+.carte-ligne .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+/* Aperçu de la répartition (saisie d'une ligne) : une pastille par poste */
+.apercu > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--blanc); border: 1px solid var(--bord); }
+.apercu > span:first-child { background: transparent; border-color: transparent; padding-left: 0; }
+#form-ligne > h2 { margin: 0 0 14px; font-size: 15px; color: var(--c-foncee); display: flex; align-items: center; gap: 10px; }
+#form-ligne > h2::before { content: ""; width: 4px; height: 16px; background: var(--acr-or); border-radius: 2px; }
+
 /* Navigation secondaire en pastilles (pages d'administration) */
 .sous-nav { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 16px; }
 .sous-nav a { padding: 8px 14px; min-height: 40px; display: inline-flex; align-items: center; border-radius: 999px; text-decoration: none; color: var(--acr-encre); border: 1px solid var(--bord); background: var(--blanc); }
@@ -512,6 +535,9 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
   .pied { padding: 12px; }
 }
 @media (max-width: 720px) {
+  .vue-tableau { display: none; }
+  .vue-cartes { display: grid; }
+  #form-ligne .formulaire__actions button { width: 100%; min-height: 48px; font-size: 15px; }
   button, .btn { min-height: 44px; }
   .btn--petit { min-height: 44px; min-width: 44px; }
   .carte { padding: 14px 12px; }
@@ -529,7 +555,8 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
 }
 
 @media print {
-  .lateral, .haut, .sous-nav, .pied, .toasts, .no-print, .voile { display: none !important; }
+  .lateral, .haut, .sous-nav, .pied, .toasts, .no-print, .voile, .vue-cartes { display: none !important; }
+  .vue-tableau { display: block !important; }
   .app { display: block; }
   body { background: var(--blanc); }
   .carte { break-inside: avoid; box-shadow: none; }
