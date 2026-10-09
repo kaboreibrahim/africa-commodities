@@ -71,6 +71,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "comptes.contexte.authentification",
             ],
         },
     },
@@ -113,7 +114,7 @@ SIMPLE_HISTORY_REVERT_DISABLED = True
 MFA_SUPPORTED_TYPES = ["totp", "recovery_codes"]
 MFA_TOTP_ISSUER = "Groupe – Suivi des marges"
 # Rôles pour lesquels la 2FA (TOTP) est obligatoire (voir comptes/middleware.py).
-MFA_ROLES_OBLIGATOIRES = ["admin_groupe", "responsable"]
+MFA_ROLES_OBLIGATOIRES = ["admin_groupe", "responsable", "vue_groupe"]  # « vue_groupe » : habilitation Vue Groupe en vigueur
 
 # --- axes : 5 échecs -> blocage 30 min, par couple identifiant + IP ---
 AXES_FAILURE_LIMIT = 5

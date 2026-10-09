@@ -27,9 +27,24 @@ class _Contexte:
         self.en_attente: list[dict] = []
 
 
+def _nettoyer_valeur(valeur):
+    if isinstance(valeur, (int, float, bool)) or valeur is None:
+        return valeur
+    if isinstance(valeur, dict):
+        return _nettoyer(valeur)
+    if isinstance(valeur, (list, tuple, set, frozenset)):
+        return [_nettoyer_valeur(v) for v in (sorted(valeur, key=str) if isinstance(valeur, (set, frozenset)) else valeur)]
+    return str(valeur)
+
+
 def _nettoyer(details: dict) -> dict:
-    return {cle: (valeur if isinstance(valeur, (int, float, bool)) or valeur is None else str(valeur))
-            for cle, valeur in details.items() if not CLES_INTERDITES.search(cle)}
+    """Garde les valeurs simples, listes et dictionnaires (avant/après d'une habilitation) ; filtre les clés sensibles."""
+    return {cle: _nettoyer_valeur(valeur) for cle, valeur in details.items() if not CLES_INTERDITES.search(cle)}
+
+
+# Vrai pendant une opération de `comptes/services.py` : elle écrit elle-même une entrée détaillée
+# (auteur, avant/après, motif), les signaux de modèle n'en ajoutent alors pas une seconde.
+par_service = contextvars.ContextVar("journal_par_service", default=False)
 
 
 def _ecrire(entree: dict) -> None:

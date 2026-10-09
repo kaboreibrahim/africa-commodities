@@ -6,7 +6,7 @@ from axes.utils import reset as reinitialiser_axes
 from django.core.cache import cache
 from django.utils import timezone
 
-from comptes.models import Affectation, Utilisateur
+from comptes.models import Affectation, HabilitationVueGroupe, Utilisateur
 from operations.models import Ligne
 from repartition.models import RegleRepartition
 from societes.models import Societe
@@ -64,7 +64,10 @@ class JeuUtilisateursMixin:
         cls.ooa = Societe.objects.get(code="ooa")
         cls.anl = Societe.objects.get(code="anl")
         cls.admin_groupe = creer_utilisateur("admin", Utilisateur.RoleGlobal.ADMIN_GROUPE)
-        cls.direction = creer_utilisateur("direction", Utilisateur.RoleGlobal.DIRECTION)
+        # Ancien rôle « Direction » : désormais une habilitation Vue Groupe sur toutes les sociétés, avec le détail.
+        cls.direction = creer_utilisateur("direction")
+        HabilitationVueGroupe.objects.create(utilisateur=cls.direction, portee=HabilitationVueGroupe.Portee.TOUTES,
+                                             detail_autorise=True, motif="Jeu de test")
         cls.responsable_ooa = creer_utilisateur("resp_ooa", affectations=[(cls.ooa, R.RESPONSABLE)])
         cls.saisie_ooa = creer_utilisateur("saisie_ooa", affectations=[(cls.ooa, R.SAISIE)])
         cls.collegue_ooa = creer_utilisateur("collegue_ooa", affectations=[(cls.ooa, R.SAISIE)])

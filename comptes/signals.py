@@ -11,7 +11,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 
 from .axes import identifiant_tentative
-from .journal import journaliser
+from .journal import journaliser, par_service
 from .models import Affectation, JournalSecurite, Utilisateur
 
 E = JournalSecurite.Evenement
@@ -66,6 +66,8 @@ def mfa_desactivee(sender, instance, **kwargs):
 def memoriser_changements(sender, instance, update_fields=None, raw=False, **kwargs):
     """Repère, avant l'enregistrement, un changement de mot de passe ou de rôle global."""
     instance._changements_securite = {}
+    if par_service.get():
+        return
     if raw or instance._state.adding or not instance.pk:
         return
     champs = {"password", "role_global"} if update_fields is None else {"password", "role_global"} & set(update_fields)
@@ -87,7 +89,7 @@ def journaliser_changements(sender, instance, created, **kwargs):
         avant, apres = changements["role_global"]
         journaliser(E.ROLE_MODIFIE, utilisateur=instance, role_global_avant=avant or "aucun",
                     role_global_apres=apres or "aucun", par=_auteur())
-    if created and instance.role_global:
+    if created and instance.role_global and not par_service.get():
         journaliser(E.ROLE_MODIFIE, utilisateur=instance, role_global_avant="aucun",
                     role_global_apres=instance.role_global, par=_auteur())
 
@@ -105,7 +107,7 @@ def mot_de_passe_definitif(sender, request, user, **kwargs):
 
 @receiver(post_save, sender=Affectation)
 def affectation_enregistree(sender, instance, created, raw=False, **kwargs):
-    if raw:
+    if raw or par_service.get():
         return
     journaliser(E.ROLE_MODIFIE, utilisateur=instance.utilisateur, action="creee" if created else "modifiee",
                 societe=instance.societe.code, role=instance.role, active=instance.actif, par=_auteur())
@@ -113,6 +115,8 @@ def affectation_enregistree(sender, instance, created, raw=False, **kwargs):
 
 @receiver(post_delete, sender=Affectation)
 def affectation_supprimee(sender, instance, **kwargs):
+    if par_service.get():
+        return
     # L'utilisateur est peut-être en cours de suppression (cascade) : on garde son e-mail, pas la clé.
     journaliser(E.ROLE_MODIFIE, identifiant_saisi=instance.utilisateur.email, action="supprimee",
                 utilisateur_id=instance.utilisateur_id, societe=instance.societe.code, role=instance.role,

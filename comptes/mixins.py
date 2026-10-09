@@ -42,12 +42,12 @@ class SaisieSocieteMixin(AccesSocieteMixin):
 
 
 class VueGroupeMixin(LoginRequiredMixin):
-    """Vue Groupe consolidée : Admin groupe et Direction uniquement."""
+    """Vue Groupe consolidée : admin groupe ou habilitation Vue Groupe en vigueur (404 sinon)."""
 
     def dispatch(self, request, *args, **kwargs):
         if not request.user.is_authenticated:
             return self.handle_no_permission()
-        if not acces.voit_tout_le_groupe(request.user):
+        if not acces.voit_vue_groupe(request.user):
             acces.signaler_refus(request.user, "vue_groupe", chemin=request.path)
             raise Http404("Page introuvable.")
         return super().dispatch(request, *args, **kwargs)

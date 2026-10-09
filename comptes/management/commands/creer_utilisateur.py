@@ -3,7 +3,7 @@ Crée un compte avec un mot de passe provisoire fort, affiché une seule fois.
 
     python manage.py creer_utilisateur --email awa@exemple.ci --nom Kone --prenom Awa \\
         --societe ooa:responsable --societe anl:lecture
-    python manage.py creer_utilisateur --email dg@exemple.ci --nom Diallo --prenom Moussa --role-global direction
+    python manage.py creer_utilisateur --email dg@exemple.ci --nom Diallo --prenom Moussa --role-global admin_groupe
 """
 import secrets
 import string

@@ -111,7 +111,8 @@ class AdminTests(ReinitialiserAxesMixin, JeuUtilisateursMixin, TestCase):
         with self.assertLogs("securite", "WARNING"):
             self.assertEqual(self.client.get(f"{URL_ADMIN}operations/ligne/", follow=True).status_code, 403)
 
-    def test_direction_n_accede_pas_a_l_admin(self):
+    def test_titulaire_vue_groupe_n_accede_pas_a_l_admin(self):
+        activer_totp(self.direction)  # la Vue Groupe impose la 2FA : sans elle, redirection vers son activation
         self.client.force_login(self.direction)
         with self.assertLogs("securite", "WARNING"):
             self.assertEqual(self.client.get(URL_ADMIN, follow=True).status_code, 403)

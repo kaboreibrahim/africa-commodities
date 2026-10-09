@@ -22,10 +22,11 @@ CLE_REGLE = "interface:regle_en_vigueur"
 
 LIBELLES_ROLES = {
     acces.ADMIN_GROUPE: Utilisateur.RoleGlobal.ADMIN_GROUPE.label,
-    acces.DIRECTION: "Direction",
     acces.RESPONSABLE: Affectation.Role.RESPONSABLE.label,
     acces.SAISIE: Affectation.Role.SAISIE.label,
     acces.LECTURE: Affectation.Role.LECTURE.label,
+    acces.VUE_GROUPE: "Vue Groupe",
+    acces.LECTURE_GROUPE: "Lecture (Vue Groupe)",
 }
 
 
@@ -93,7 +94,7 @@ class InterfaceMixin(LoginRequiredMixin):
             "section": self.section,
             "societe": self.societe,
             "logo_url": url_logo(self.societe),
-            "voit_groupe": acces.voit_tout_le_groupe(user),
+            "voit_groupe": acces.voit_vue_groupe(user),
             "peut_gerer": self.societe is not None and acces.peut_gerer_societe(user, self.societe),
             "peut_administrer": acces.peut_administrer(user),
             "role_libelle": libelle_role(user, self.societe),
@@ -125,4 +126,4 @@ class GestionSocieteMixin(InterfaceMixin, AccesSocieteMixin):
 
 
 class PageGroupeMixin(InterfaceMixin, VueGroupeMixin):
-    """Vue Groupe : Admin groupe et Direction (404 pour les autres)."""
+    """Vue Groupe : admin groupe ou habilitation Vue Groupe en vigueur (404 pour les autres)."""

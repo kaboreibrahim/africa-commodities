@@ -89,10 +89,10 @@ class JournalEvenementsTests(JeuUtilisateursMixin, TestCase):
         self.assertTrue(JournalSecurite.objects.filter(evenement=E.MFA_DESACTIVEE, utilisateur=self.saisie_ooa).exists())
 
     def test_role_global_et_affectations(self):
-        self.lecture_ooa.role_global = Utilisateur.RoleGlobal.DIRECTION
+        self.lecture_ooa.role_global = Utilisateur.RoleGlobal.ADMIN_GROUPE
         self.lecture_ooa.save()
         entree = JournalSecurite.objects.get(evenement=E.ROLE_MODIFIE)
-        self.assertEqual(entree.details["role_global_apres"], "direction")
+        self.assertEqual(entree.details["role_global_apres"], "admin_groupe")
 
         affectation = Affectation.objects.create(utilisateur=self.lecture_ooa, societe=self.anl, role="saisie")
         affectation.role = "responsable"

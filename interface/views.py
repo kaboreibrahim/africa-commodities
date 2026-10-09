@@ -29,12 +29,12 @@ from .theme import css_theme
 # --- Accueil, thème, onglets ------------------------------------------------------------------
 
 class AccueilView(InterfaceMixin, TemplateView):
-    """Redirige vers la Vue Groupe (Admin, Direction) ou vers la 1re société accessible."""
+    """Redirige vers la Vue Groupe (si l'utilisateur y a droit) ou vers la 1re société accessible."""
 
     template_name = "interface/aucune_societe.html"
 
     def get(self, request, *args, **kwargs):
-        if acces.voit_tout_le_groupe(request.user):
+        if acces.voit_vue_groupe(request.user):
             return redirect("interface:groupe")
         if self.onglets:
             return redirect("interface:tableau", code_societe=self.onglets[0].code)
@@ -44,11 +44,12 @@ class AccueilView(InterfaceMixin, TemplateView):
 @login_required
 def theme_css(request, code):
     """Variables de couleur du thème (société ou « groupe ») et couleurs de série des sociétés accessibles."""
-    societes = list(acces.societes_accessibles(request.user))
+    societes = list(acces.societes_visibles(request.user))  # accessibles + sociétés de la Vue Groupe (couleurs)
     if code == "groupe":
         societe = None
     else:
-        societe = next((s for s in societes if s.code == code), None)
+        accessibles = {s.pk for s in acces.societes_accessibles(request.user)}
+        societe = next((s for s in societes if s.code == code and s.pk in accessibles), None)
         if societe is None:
             raise Http404("Société introuvable.")
     reponse = HttpResponse(css_theme(societe, societes), content_type="text/css; charset=utf-8")
@@ -158,18 +159,26 @@ class DepensesView(GestionSocieteMixin, FormView):
 
 
 class VueGroupeView(PageGroupeMixin, TemplateView):
-    """Vue Groupe consolidée (Admin groupe, Direction) : synthèse du mois et graphiques."""
+    """Vue Groupe consolidée : synthèse du mois et graphiques, limitée aux sociétés de la portée de l'utilisateur."""
 
     template_name = "interface/groupe.html"
     section = "groupe"
 
     def get_context_data(self, **kwargs):
         contexte = super().get_context_data(**kwargs)
-        synthese = synthese_groupe(self.mois, societes=self.onglets)
+        user = self.request.user
+        societes = list(acces.societes_vue_groupe(user))  # la portée : tous les totaux ne portent que sur elles
+        synthese = synthese_groupe(self.mois, societes=societes)
         total = totaux_synthese(synthese)
-        marges_annee = marges_par_mois_par_societe(self.mois.year, societes=self.onglets)
-        contexte.update(synthese=synthese, total=total,
-                        graphiques=graphiques.donnees_groupe(synthese, total, marges_annee, self.mois))
+        marges_annee = marges_par_mois_par_societe(self.mois.year, societes=societes)
+        contexte.update(
+            synthese=synthese, total=total,
+            graphiques=graphiques.donnees_groupe(synthese, total, marges_annee, self.mois),
+            portee_toutes=acces.portee_vue_groupe(user) == acces.TOUTES,
+            portee_societes=societes,
+            # Une ligne n'est cliquable que si l'utilisateur peut ouvrir la société (affectation ou détail autorisé).
+            ouvrables={s.pk for s in societes if acces.peut_lire(user, s)},
+        )
         return contexte
 
 

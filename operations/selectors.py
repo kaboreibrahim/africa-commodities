@@ -222,11 +222,12 @@ def synthese_groupe(mois: date, societes=None) -> list[dict]:
     objectifs, dépenses, règle du mois. `societes` peut être fourni déjà chargé (1 requête de moins).
     """
     mois = premier_du_mois(mois)
+    societes = list(Societe.objects.filter(actif=True) if societes is None else societes)
     par_societe = {
         r["societe"]: r
-        for r in Ligne.objects.du_mois(mois).values("societe").annotate(**_agregats()).order_by()
+        for r in (Ligne.objects.du_mois(mois).filter(societe__in=[s.pk for s in societes])
+                  .values("societe").annotate(**_agregats()).order_by())
     }
-    societes = list(Societe.objects.filter(actif=True) if societes is None else societes)
     objectifs = objectifs_resolus(societes, [mois])
     depenses = dict(DepenseMensuelle.objects.filter(mois=mois, societe__in=societes).values_list("societe", "montant"))
     pct_charges = _pct_charges_du_mois(mois)

@@ -66,7 +66,7 @@ class MatriceDesDroitsTests(JeuUtilisateursMixin, TestCase):
 
     def test_role_sur(self):
         self.assertEqual(acces.role_sur(self.admin_groupe, self.ooa), "admin_groupe")
-        self.assertEqual(acces.role_sur(self.direction, self.ooa), "direction")
+        self.assertEqual(acces.role_sur(self.direction, self.ooa), "lecture_groupe")
         self.assertEqual(acces.role_sur(self.responsable_ooa, self.ooa), "responsable")
         self.assertEqual(acces.role_sur(self.saisie_ooa, self.ooa.pk), "saisie")
         self.assertEqual(acces.role_sur(self.lecture_ooa, self.ooa), "lecture")
@@ -78,7 +78,7 @@ class MatriceDesDroitsTests(JeuUtilisateursMixin, TestCase):
         Affectation.objects.create(utilisateur=self.direction, societe=self.anl, role=Affectation.Role.SAISIE)
         acces.vider_cache(self.direction)
         self.assertEqual(acces.role_sur(self.direction, self.anl), "saisie")
-        self.assertEqual(acces.role_sur(self.direction, self.ooa), "direction")
+        self.assertEqual(acces.role_sur(self.direction, self.ooa), "lecture_groupe")
 
     def test_societe_inactive_inaccessible(self):
         Societe.objects.filter(pk=self.ooa.pk).update(actif=False)
@@ -88,7 +88,7 @@ class MatriceDesDroitsTests(JeuUtilisateursMixin, TestCase):
 
     def test_role_sur_une_seule_requete(self):
         acces.vider_cache(self.saisie_ooa)
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(1):  # affectations + Vue Groupe en une requête UNION, une fois par requête HTTP
             for _ in range(10):
                 acces.role_sur(self.saisie_ooa, self.ooa)
                 acces.role_sur(self.saisie_ooa, self.anl)

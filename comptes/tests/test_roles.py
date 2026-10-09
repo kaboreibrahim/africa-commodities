@@ -32,7 +32,7 @@ class IsStaffSynchroniseTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.is_staff)
 
-        user.role_global = Utilisateur.RoleGlobal.DIRECTION
+        user.role_global = Utilisateur.RoleGlobal.AUCUN
         user.save(update_fields=["role_global"])
         user.refresh_from_db()
         self.assertFalse(user.is_staff)

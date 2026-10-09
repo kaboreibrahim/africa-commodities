@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static format_fr %}
 {% block titre %}Vue Groupe{% endblock %}
-{% block sous_titre %}Consolidation {% for r in synthese %}{{ r.societe.code|upper }}{% if not forloop.last %} · {% endif %}{% endfor %}{% endblock %}
+{% block sous_titre %}Vue Groupe — {% if portee_toutes %}toutes les sociétés{% else %}{{ portee_societes|length }} société{{ portee_societes|length|pluralize }} : {% for s in portee_societes %}{{ s.code|upper }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}{% endblock %}
 {% block scripts %}
   <script src="{% static 'vendor/chart.umd.min.js' %}" defer></script>
   <script src="{% static 'js/graphiques.js' %}" defer></script>
@@ -44,7 +44,7 @@
     <div class="kpi">
       <div class="kpi__l">Comptes (disponible)</div>
       <div class="kpi__v">{{ total.comptes|fcfa }}</div>
-      <div class="kpi__s">Cumul des {{ synthese|length }} sociétés</div>
+      <div class="kpi__s">Cumul des {{ synthese|length }} société{{ synthese|length|pluralize }}</div>
     </div>
   </section>
 
@@ -62,9 +62,9 @@
         </tr></thead>
         <tbody>
           {% for r in synthese %}{% with c=r.couverture s=r.societe %}
-            <tr class="ligne-cliquable" data-href="{% url 'interface:tableau' s.code %}">
+            {% if s.pk in ouvrables %}<tr class="ligne-cliquable" data-href="{% url 'interface:tableau' s.code %}">{% else %}<tr>{% endif %}
               <td><span class="cellule-societe"><span class="point serie-{{ s.code }}" aria-hidden="true"></span>
-                <a href="{% url 'interface:tableau' s.code %}">{{ s.nom }}</a></span></td>
+                {% if s.pk in ouvrables %}<a href="{% url 'interface:tableau' s.code %}">{{ s.nom }}</a>{% else %}{{ s.nom }}{% endif %}</span></td>
               <td class="n">{{ r.quantite|nombre }} <span class="unite">{{ s.unite }}{{ r.quantite|pluralize }}</span></td>
               <td class="n"><strong>{{ r.marge|nombre }}</strong></td>
               <td class="n">{{ r.objectif|nombre }}</td>

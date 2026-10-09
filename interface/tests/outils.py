@@ -24,7 +24,7 @@ class JeuInterfaceMixin(JeuUtilisateursMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        for user in (cls.admin_groupe, cls.responsable_ooa):
+        for user in (cls.admin_groupe, cls.responsable_ooa, cls.direction):  # la Vue Groupe impose la 2FA
             activer_totp(user)
 
     def setUp(self):
