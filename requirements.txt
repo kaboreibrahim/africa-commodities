@@ -3,6 +3,7 @@ django-environ==0.14.0
 argon2-cffi==25.1.0
 psycopg[binary]==3.3.6            # PostgreSQL
 Pillow==12.3.0                    # logos des sociétés (et vérification des images)
+reportlab==5.0.1                  # récapitulatifs PDF des lignes
 
 # Étape 2 — sécurité
 django-allauth[mfa]==65.19.7      # connexion par e-mail, 2FA TOTP + codes de récupération

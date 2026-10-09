@@ -4,6 +4,7 @@ restauration, corbeille. Les écritures passent UNIQUEMENT par operations.servic
 comptes.acces, les calculs par repartition.services et operations.selectors.
 """
 from datetime import date
+import re
 from decimal import Decimal, InvalidOperation
 
 from django.contrib import messages
@@ -18,8 +19,8 @@ from django.utils.functional import cached_property
 from django.views.generic import TemplateView
 
 from comptes import acces
-from core.templatetags.format_fr import de_mois
-from operations import services
+from core.templatetags.format_fr import de_mois, mois_long
+from operations import pdf, services
 from operations.models import Ligne
 from operations.selectors import PERIODES, etat_du_mois, lignes_filtrees, projets_de_la_societe, totaux
 from repartition.models import RegleRepartition
@@ -178,6 +179,73 @@ class LigneMixin(LignesMixin):
     def ligne(self) -> Ligne:
         source = Ligne.tous if self.corbeille else Ligne.objects
         return get_object_or_404(source.select_related("client"), societe=self.societe, pk=self.kwargs["pk"])
+
+
+POSTES_DETAIL = (("charges", "Charges", "part_charges"), ("africa_commodities", "Africa Commodities", "part_africa_commodities"),
+                 ("risques", "Risques", "part_risques"), ("provision", "Provision", "part_provision"),
+                 ("comptes", "Comptes", "part_comptes"))
+
+
+def _reponse_pdf(contenu: bytes, nom: str) -> HttpResponse:
+    """PDF en téléchargement (jamais mis en cache : données confidentielles)."""
+    reponse = HttpResponse(contenu, content_type="application/pdf")
+    reponse["Content-Disposition"] = f'attachment; filename="{nom}"'
+    reponse["Cache-Control"] = "private, no-store"
+    return reponse
+
+
+def _nom_fichier(*morceaux: str) -> str:
+    return re.sub(r"[^A-Za-z0-9._-]+", "-", "-".join(m for m in morceaux if m)).strip("-").lower() + ".pdf"
+
+
+class LigneDetailView(LigneMixin, PageSocieteMixin, TemplateView):
+    """Détail d'une ligne (lecture) : informations, répartition figée, règle appliquée, PDF."""
+
+    template_name = "interface/ligne_detail.html"
+    section = "lignes"
+
+    def get_context_data(self, **kwargs):
+        contexte = super().get_context_data(**kwargs)
+        ligne = self.ligne
+        total = ligne.marge_totale or Decimal("0")
+        postes = [{"cle": cle, "nom": nom, "valeur": getattr(ligne, champ),
+                   "part": (getattr(ligne, champ) / total * 100) if total else Decimal("0")}
+                  for cle, nom, champ in POSTES_DETAIL]
+        contexte.update(ligne=ligne, postes=postes, regle=ligne.regle,
+                        peut_modifier_ligne=acces.peut_modifier_ligne(self.request.user, ligne),
+                        peut_supprimer_ligne=acces.peut_supprimer_ligne(self.request.user, ligne))
+        return contexte
+
+
+class LignePdfView(LigneMixin, PageSocieteMixin, TemplateView):
+    """Téléchargement du récapitulatif PDF d'une ligne (mêmes droits que la lecture de la société)."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        nom = _nom_fichier(self.societe.code, "ligne", self.ligne.reference, f"{self.ligne.date:%Y-%m-%d}")
+        return _reponse_pdf(pdf.pdf_ligne(self.ligne, self.societe), nom)
+
+
+class LignesPdfView(LignesMixin, PageSocieteMixin, TemplateView):
+    """Récapitulatif PDF des lignes de la liste (mêmes filtres : période, recherche, client, projet)."""
+
+    http_method_names = ["get"]
+
+    def get(self, request, *args, **kwargs):
+        filtres = FiltresLignesForm(request.GET or None, clients=self.clients, projets=projets_de_la_societe(self.societe),
+                                    periodes=PERIODES, initial={"periode": "mois"}, auto_id="filtre_%s")
+        valeurs = filtres.valeurs()
+        qs = lignes_filtrees(self.societe, self.mois, **valeurs)
+        lignes = list(qs)
+        if valeurs["periode"] == "mois":
+            periode, suffixe = mois_long(self.mois), f"{self.mois:%Y-%m}"
+        elif valeurs["periode"] == "annee":
+            periode, suffixe = f"année {self.mois.year}", f"{self.mois.year}"
+        else:
+            periode, suffixe = "toutes périodes", "toutes"
+        contenu = pdf.pdf_recap(self.societe, lignes, totaux(qs), periode)
+        return _reponse_pdf(contenu, _nom_fichier(self.societe.code, "recap", suffixe))
 
 
 class LigneModifierView(LigneMixin, PageSocieteMixin, TemplateView):

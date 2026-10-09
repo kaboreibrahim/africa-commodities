@@ -20,12 +20,11 @@ class RechercheClientsTests(JeuInterfaceMixin, TestCase):
 
 
 class ListeLignesTests(JeuInterfaceMixin, TestCase):
-    def test_cartes_et_etat_vide(self):
+    def test_liste_et_etat_vide(self):
         self.connecter(self.saisie_ooa)
         url = reverse("interface:lignes", args=["ooa"])
         reponse = self.client.get(url)
-        self.assertContains(reponse, "carte-ligne")
-        self.assertContains(reponse, "Voir la répartition")
+        self.assertContains(reponse, "Détail")
         reponse = self.client.get(url, {"q": "introuvable-xyz"})
         self.assertContains(reponse, "Aucun enregistrement pour cette période")
         self.assertContains(reponse, "etat-vide")
@@ -52,3 +51,38 @@ class NavigationTests(JeuInterfaceMixin, TestCase):
         self.assertNotContains(self.client.get(reverse("interface:lignes", args=["ooa"])), "dialogue-saisie")
         reponse = self.client.get(reverse("interface:lignes", args=["ooa"]), {"nouveau": "1"})
         self.assertNotContains(reponse, "form-ligne")
+
+
+class DetailEtPdfTests(JeuInterfaceMixin, TestCase):
+    def test_detail_d_une_ligne(self):
+        self.connecter(self.lecture_ooa)
+        reponse = self.client.get(reverse("interface:ligne_detail", args=["ooa", self.ligne_saisie_ooa.pk]))
+        self.assertContains(reponse, "Répartition de la marge")
+        self.assertContains(reponse, "Télécharger le récapitulatif (PDF)")
+        self.assertNotContains(reponse, ">Modifier<")  # lecture seule
+
+    def test_liste_avec_liens_detail_et_pdf_sans_cartes_en_double(self):
+        self.connecter(self.saisie_ooa)
+        reponse = self.client.get(reverse("interface:lignes", args=["ooa"]))
+        self.assertContains(reponse, reverse("interface:ligne_detail", args=["ooa", self.ligne_saisie_ooa.pk]))
+        self.assertContains(reponse, reverse("interface:lignes_pdf", args=["ooa"]))
+        self.assertNotContains(reponse, "carte-ligne")
+
+    def test_pdf_ligne_et_recapitulatif(self):
+        self.connecter(self.lecture_ooa)
+        pdf_ligne = self.client.get(reverse("interface:ligne_pdf", args=["ooa", self.ligne_saisie_ooa.pk]))
+        self.assertEqual(pdf_ligne["Content-Type"], "application/pdf")
+        self.assertTrue(pdf_ligne.content.startswith(b"%PDF"))
+        self.assertIn("attachment", pdf_ligne["Content-Disposition"])
+        self.assertEqual(pdf_ligne["Cache-Control"], "private, no-store")
+        recap = self.client.get(reverse("interface:lignes_pdf", args=["ooa"]))
+        self.assertTrue(recap.content.startswith(b"%PDF"))
+        self.assertIn("ooa-recap-", recap["Content-Disposition"])
+        vide = self.client.get(reverse("interface:lignes_pdf", args=["ooa"]), {"q": "introuvable-xyz"})
+        self.assertTrue(vide.content.startswith(b"%PDF"))
+
+    def test_pdf_hors_perimetre_404(self):
+        self.connecter(self.saisie_anl)
+        self.assertEqual(self.client.get(reverse("interface:ligne_pdf", args=["ooa", self.ligne_saisie_ooa.pk])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("interface:lignes_pdf", args=["ooa"])).status_code, 404)
+        self.assertEqual(self.client.get(reverse("interface:ligne_detail", args=["ooa", self.ligne_saisie_ooa.pk])).status_code, 404)

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load format_fr %}
+{% block titre %}{{ societe.code|upper }} – {{ ligne.reference }}{% endblock %}
+{% block contenu %}
+  <section class="carte">
+    <div class="entete-section">
+      <h2>{{ societe.libelle_ligne|majuscule_initiale }} {{ ligne.reference }} <small>— {{ ligne.date|date:"d/m/Y" }}</small></h2>
+      <div class="actions-page no-print">
+        <a class="btn" href="{% url 'interface:ligne_pdf' societe.code ligne.pk %}">
+          <span class="ico ico-telecharger" aria-hidden="true"></span>Télécharger le récapitulatif (PDF)
+        </a>
+        {% if peut_modifier_ligne %}
+          <a class="btn btn--secondaire" href="{% url 'interface:ligne_modifier' societe.code ligne.pk %}">
+            <span class="ico ico-modifier" aria-hidden="true"></span>Modifier
+          </a>
+        {% endif %}
+        <a class="btn btn--secondaire" href="{% url 'interface:lignes' societe.code %}">← Retour à la liste</a>
+      </div>
+    </div>
+
+    <dl class="detail-ligne">
+      <div><dt>{{ societe.libelle_reference }}</dt><dd>{{ ligne.reference }}</dd></div>
+      <div><dt>N° de projet</dt><dd>{% if ligne.projet %}<span class="badge-projet">{{ ligne.projet }}</span>{% else %}—{% endif %}</dd></div>
+      <div><dt>Client</dt><dd>{{ ligne.client.nom|default:"—" }}</dd></div>
+      {% if societe.champ_extra_type %}<div><dt>{{ societe.champ_extra_libelle }}</dt><dd>{{ ligne.extra|default:"—" }}</dd></div>{% endif %}
+      <div><dt>{{ societe.libelle_quantite }}</dt><dd>{{ ligne.quantite|nombre }}</dd></div>
+      <div><dt>{{ societe.libelle_marge }}</dt><dd>{{ ligne.marge_unitaire|fcfa }}</dd></div>
+      <div><dt>Marge totale</dt><dd><strong>{{ ligne.marge_totale|fcfa }}</strong></dd></div>
+      {% if ligne.observation %}<div><dt>Observation</dt><dd>{{ ligne.observation }}</dd></div>{% endif %}
+    </dl>
+  </section>
+
+  <section class="carte">
+    <h2>Répartition de la marge</h2>
+    <div class="cadre-tableau">
+      <table class="tableau tableau--simple">
+        <caption class="visuellement-cache">Répartition de la marge de {{ ligne.reference }}</caption>
+        <thead><tr><th scope="col">Poste</th><th scope="col" class="n">Montant</th><th scope="col" class="n">Part de la marge</th></tr></thead>
+        <tbody>
+          {% for p in postes %}
+            <tr>
+              <th scope="row"><span class="cellule-societe"><span class="pastille pastille--{{ p.cle }}" aria-hidden="true"></span>{{ p.nom }}</span></th>
+              <td class="n">{{ p.valeur|fcfa }}</td><td class="n">{{ p.part|pct }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot><tr><td>Marge totale</td><td class="n">{{ ligne.marge_totale|fcfa }}</td><td class="n">{% if ligne.marge_totale %}{{ 100|pct }}{% endif %}</td></tr></tfoot>
+      </table>
+    </div>
+    <p class="aide">Règle appliquée (en vigueur au {{ regle.date_debut|date:"d/m/Y" }}) : {{ regle.pct_charges|pct }} de la marge aux charges ;
+      {{ regle.pct_africa_commodities|pct }} du reste à Africa Commodities ; solde en {{ regle.parts_risques }}/{{ regle.parts_provision }}/{{ regle.parts_comptes }} parts
+      (risques / provision / comptes). La répartition est figée à l'enregistrement.</p>
+  </section>
+{% endblock %}

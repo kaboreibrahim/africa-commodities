@@ -1,6 +1,11 @@
 {% load format_fr %}
 <div id="liste-lignes" hx-get="{% url 'interface:lignes' societe.code %}{% if parametres %}?{{ parametres }}{% endif %}"
      hx-trigger="lignesModifiees from:body" hx-target="this" hx-swap="outerHTML">
+  <div class="actions-page no-print">
+    <a class="btn btn--secondaire" href="{% url 'interface:lignes_pdf' societe.code %}{% if parametres %}?{{ parametres }}{% endif %}">
+      <span class="ico ico-telecharger" aria-hidden="true"></span>Récapitulatif {% if periode == 'mois' %}du mois{% elif periode == 'annee' %}de l'année{% else %}complet{% endif %} (PDF)
+    </a>
+  </div>
   {% if not page.object_list %}
     <div class="etat-vide">
       <span class="ico ico-vide" aria-hidden="true"></span>
@@ -8,49 +13,53 @@
       <p>{% if peut_saisir %}Ajoutez le premier avec le formulaire ci-dessus.{% else %}Modifiez la période ou les filtres pour élargir la recherche.{% endif %}</p>
     </div>
   {% else %}
-  <div class="cadre-tableau vue-tableau">
+  <div class="cadre-tableau">
     <table class="tableau">
       <caption class="visuellement-cache">{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés</caption>
       <thead>
         <tr>
-          <th scope="col">#</th>
+          <th scope="col" class="col-sec">#</th>
           <th scope="col">Date</th>
           {% if societe.champ_extra_type %}<th scope="col">{{ societe.champ_extra_libelle }}</th>{% endif %}
           <th scope="col">{{ societe.libelle_reference }}</th>
           <th scope="col">N° projet</th>
           <th scope="col">Client</th>
           <th scope="col" class="n">Qté</th>
-          <th scope="col" class="n">Marge unit.</th>
+          <th scope="col" class="n col-sec">Marge unit.</th>
           <th scope="col" class="n">Marge totale</th>
-          <th scope="col" class="n">Charges</th>
-          <th scope="col" class="n">Africa Com.</th>
-          <th scope="col" class="n">Risques</th>
-          <th scope="col" class="n">Provision</th>
-          <th scope="col" class="n">Comptes {{ societe.code|upper }}</th>
-          <th scope="col">Observation</th>
+          <th scope="col" class="n col-sec">Charges</th>
+          <th scope="col" class="n col-sec">Africa Com.</th>
+          <th scope="col" class="n col-sec">Risques</th>
+          <th scope="col" class="n col-sec">Provision</th>
+          <th scope="col" class="n col-sec">Comptes {{ societe.code|upper }}</th>
+          <th scope="col" class="col-sec">Observation</th>
           <th scope="col"><span class="visuellement-cache">Actions</span></th>
         </tr>
       </thead>
       <tbody>
         {% for l in page %}
           <tr>
-            <td>{{ page.start_index|add:forloop.counter0 }}</td>
+            <td class="col-sec">{{ page.start_index|add:forloop.counter0 }}</td>
             <td>{{ l.date|date:"d/m/Y" }}</td>
             {% if societe.champ_extra_type %}<td>{% if l.extra %}<span class="etiquette">{{ l.extra }}</span>{% endif %}</td>{% endif %}
             <td>{{ l.reference }}</td>
             <td>{% if l.projet %}<span class="badge-projet">{{ l.projet }}</span>{% endif %}</td>
             <td>{{ l.client.nom|default:"" }}</td>
             <td class="n">{{ l.quantite|nombre }}</td>
-            <td class="n">{{ l.marge_unitaire|nombre }}</td>
+            <td class="n col-sec">{{ l.marge_unitaire|nombre }}</td>
             <td class="n"><strong>{{ l.marge_totale|nombre }}</strong></td>
-            <td class="n">{{ l.part_charges|nombre }}</td>
-            <td class="n texte-ac">{{ l.part_africa_commodities|nombre }}</td>
-            <td class="n">{{ l.part_risques|nombre }}</td>
-            <td class="n">{{ l.part_provision|nombre }}</td>
-            <td class="n">{{ l.part_comptes|nombre }}</td>
-            <td class="texte-long">{{ l.observation }}</td>
+            <td class="n col-sec">{{ l.part_charges|nombre }}</td>
+            <td class="n texte-ac col-sec">{{ l.part_africa_commodities|nombre }}</td>
+            <td class="n col-sec">{{ l.part_risques|nombre }}</td>
+            <td class="n col-sec">{{ l.part_provision|nombre }}</td>
+            <td class="n col-sec">{{ l.part_comptes|nombre }}</td>
+            <td class="texte-long col-sec">{{ l.observation }}</td>
             <td>
               <div class="actions no-print">
+                <a class="btn btn--secondaire btn--petit" href="{% url 'interface:ligne_detail' societe.code l.pk %}"
+                   aria-label="Détail de {{ l.reference }} du {{ l.date|date:'d/m/Y' }}">Détail</a>
+                <a class="btn btn--secondaire btn--petit" href="{% url 'interface:ligne_pdf' societe.code l.pk %}"
+                   title="Télécharger le récapitulatif PDF" aria-label="Télécharger le récapitulatif PDF de {{ l.reference }}"><span class="ico ico-telecharger" aria-hidden="true"></span><span class="visuellement-cache">PDF</span></a>
                 {% if l.peut_modifier %}
                   <a class="btn btn--secondaire btn--petit" href="{% url 'interface:ligne_modifier' societe.code l.pk %}"
                      hx-get="{% url 'interface:ligne_modifier' societe.code l.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
@@ -75,70 +84,19 @@
           <tr>
             <td colspan="{% if societe.champ_extra_type %}6{% else %}5{% endif %}">TOTAL ({{ totaux.nb_lignes }} ligne{{ totaux.nb_lignes|pluralize }})</td>
             <td class="n">{{ totaux.quantite|nombre }}</td>
-            <td class="n"></td>
+            <td class="n col-sec"></td>
             <td class="n">{{ totaux.marge|nombre }}</td>
-            <td class="n">{{ totaux.charges|nombre }}</td>
-            <td class="n texte-ac">{{ totaux.africa_commodities|nombre }}</td>
-            <td class="n">{{ totaux.risques|nombre }}</td>
-            <td class="n">{{ totaux.provision|nombre }}</td>
-            <td class="n">{{ totaux.comptes|nombre }}</td>
-            <td colspan="2"></td>
+            <td class="n col-sec">{{ totaux.charges|nombre }}</td>
+            <td class="n texte-ac col-sec">{{ totaux.africa_commodities|nombre }}</td>
+            <td class="n col-sec">{{ totaux.risques|nombre }}</td>
+            <td class="n col-sec">{{ totaux.provision|nombre }}</td>
+            <td class="n col-sec">{{ totaux.comptes|nombre }}</td>
+            <td class="col-sec"></td><td></td>
           </tr>
         </tfoot>
       {% endif %}
     </table>
   </div>
-
-  {# Téléphone : chaque ligne devient une carte (date, référence, client, marge en gros ; détail repliable) #}
-  <ul class="cartes-lignes vue-cartes" aria-label="{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés">
-    {% for l in page %}
-      <li class="carte-ligne">
-        <div class="carte-ligne__tete">
-          <div>
-            <p class="carte-ligne__ref">{{ l.reference }}</p>
-            <p class="carte-ligne__meta">{{ l.date|date:"d/m/Y" }}{% if l.client %} · {{ l.client.nom }}{% endif %}</p>
-            {% if l.projet or l.extra %}<p class="carte-ligne__meta">{% if l.extra %}<span class="etiquette">{{ l.extra }}</span> {% endif %}{% if l.projet %}<span class="badge-projet">{{ l.projet }}</span>{% endif %}</p>{% endif %}
-          </div>
-          <p class="carte-ligne__marge">{{ l.marge_totale|fcfa }}</p>
-        </div>
-        <p class="carte-ligne__meta">{{ l.quantite|nombre }} × {{ l.marge_unitaire|fcfa }}</p>
-        <details class="carte-ligne__detail">
-          <summary>Voir la répartition</summary>
-          <ul class="postes">
-            <li><span class="pastille pastille--charges" aria-hidden="true"></span>Charges <strong>{{ l.part_charges|fcfa }}</strong></li>
-            <li class="texte-ac"><span class="pastille pastille--africa_commodities" aria-hidden="true"></span>Africa Com. <strong>{{ l.part_africa_commodities|fcfa }}</strong></li>
-            <li><span class="pastille pastille--risques" aria-hidden="true"></span>Risques <strong>{{ l.part_risques|fcfa }}</strong></li>
-            <li><span class="pastille pastille--provision" aria-hidden="true"></span>Provision <strong>{{ l.part_provision|fcfa }}</strong></li>
-            <li><span class="pastille pastille--comptes" aria-hidden="true"></span>Comptes {{ societe.code|upper }} <strong>{{ l.part_comptes|fcfa }}</strong></li>
-          </ul>
-          {% if l.observation %}<p class="aide">{{ l.observation }}</p>{% endif %}
-        </details>
-        {% if l.peut_modifier or l.peut_supprimer %}
-          <div class="actions no-print">
-            {% if l.peut_modifier %}
-              <a class="btn btn--secondaire btn--petit" href="{% url 'interface:ligne_modifier' societe.code l.pk %}"
-                 hx-get="{% url 'interface:ligne_modifier' societe.code l.pk %}" hx-target="#dialogue-contenu" hx-swap="innerHTML"
-                 aria-label="Modifier {{ l.reference }} du {{ l.date|date:'d/m/Y' }}"><span class="ico ico-modifier" aria-hidden="true"></span>Modifier</a>
-            {% endif %}
-            {% if l.peut_supprimer %}
-              <form method="post" action="{% url 'interface:ligne_supprimer' societe.code l.pk %}"
-                    hx-post="{% url 'interface:ligne_supprimer' societe.code l.pk %}" hx-target="closest li" hx-swap="outerHTML"
-                    hx-confirm="Supprimer {{ l.reference }} du {{ l.date|date:'d/m/Y' }} ?">
-                {% csrf_token %}
-                <button type="submit" class="btn btn--danger btn--petit" aria-label="Supprimer {{ l.reference }} du {{ l.date|date:'d/m/Y' }}"><span class="ico ico-corbeille" aria-hidden="true"></span>Supprimer</button>
-              </form>
-            {% endif %}
-          </div>
-        {% endif %}
-      </li>
-    {% endfor %}
-    {% if totaux.nb_lignes %}
-      <li class="carte-ligne carte-ligne--total">
-        <div class="carte-ligne__tete"><p class="carte-ligne__ref">TOTAL ({{ totaux.nb_lignes }} ligne{{ totaux.nb_lignes|pluralize }})</p><p class="carte-ligne__marge">{{ totaux.marge|fcfa }}</p></div>
-        <p class="carte-ligne__meta">{{ totaux.quantite|nombre }} {{ societe.unite }}{{ totaux.quantite|pluralize }} · Africa Com. {{ totaux.africa_commodities|fcfa }}</p>
-      </li>
-    {% endif %}
-  </ul>
   {% endif %}
 
   {% if page.has_other_pages %}

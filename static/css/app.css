@@ -426,14 +426,14 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .etat-vide p { margin: 0; max-width: 46ch; }
 
 /* Bouton « Voir les dossiers » et fenêtre de saisie */
-.actions-page { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+.actions-page { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .form-saisie .dialogue__entete h2 { font-size: 17px; }
 dialog.dialogue[open]:not(:modal) { position: static; margin: 0 auto 18px; display: block; border: 1px solid var(--bord); }
 dialog.dialogue { max-height: calc(100vh - 24px); overflow-y: auto; }
 
 /* Lignes et clients : tableau sur ordinateur, cartes sur téléphone */
-.vue-cartes { display: none; }
 .cartes-lignes { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cartes-lignes.vue-cartes { display: none; }
 .carte-ligne { border: 1px solid var(--bord); border-radius: var(--rayon); padding: 12px 14px; background: var(--blanc); box-shadow: var(--ombre); }
 .carte-ligne--total { background: var(--c-claire); border-color: var(--c-principale); }
 .carte-ligne p { margin: 0; }
@@ -447,6 +447,11 @@ dialog.dialogue { max-height: calc(100vh - 24px); overflow-y: auto; }
 .postes li { display: flex; align-items: center; gap: 8px; }
 .postes strong { margin-left: auto; }
 .carte-ligne .actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+/* Détail d'une ligne */
+.detail-ligne { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px; margin: 0 0 16px; }
+.detail-ligne dt { font-size: 12px; color: var(--gris); font-weight: 600; }
+.detail-ligne dd { margin: 2px 0 0; font-weight: 500; }
 
 /* Aperçu de la répartition (saisie d'une ligne) : une pastille par poste */
 .apercu > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--blanc); border: 1px solid var(--bord); }
@@ -545,7 +550,8 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
 }
 @media (max-width: 720px) {
   .vue-tableau { display: none; }
-  .vue-cartes { display: grid; }
+  .cartes-lignes.vue-cartes { display: grid; }
+  .col-sec { display: none; }
   #form-ligne .formulaire__actions button { width: 100%; min-height: 48px; font-size: 15px; }
   button, .btn { min-height: 44px; }
   .btn--petit { min-height: 44px; min-width: 44px; }
