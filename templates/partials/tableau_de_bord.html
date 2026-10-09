@@ -2,11 +2,7 @@
 <div id="tableau-de-bord" hx-get="{% url 'interface:tableau' societe.code %}"
      hx-trigger="objectifModifie from:body, depensesModifiees from:body, lignesModifiees from:body" hx-swap="outerHTML">
 
-  <div class="actions-page no-print">
-    <a class="btn" href="{% url 'interface:lignes' societe.code %}">
-      <span class="ico ico-operations" aria-hidden="true"></span>Voir les {{ societe.libelle_ligne_pluriel }}
-    </a>
-  </div>
+  {% include "partials/_actions_societe.html" %}
 
   {% if ind.objectif_atteint %}
     <div class="bandeau" role="status">

@@ -2,6 +2,7 @@
 {% load format_fr %}
 {% block titre %}{{ societe.code|upper }} – Corbeille{% endblock %}
 {% block contenu %}
+  {% include "partials/_actions_societe.html" %}
   <section class="carte">
     <h2>Corbeille <small>— {{ societe.libelle_ligne_pluriel }} supprimés, restaurables</small></h2>
     <div class="cadre-tableau">

@@ -2,6 +2,7 @@
 {% load format_fr %}
 {% block titre %}{{ societe.code|upper }} – {{ societe.libelle_ligne_pluriel|majuscule_initiale }}{% endblock %}
 {% block contenu %}
+  {% include "partials/_actions_societe.html" %}
   <section class="carte">
     <div class="entete-section">
       <h2>{{ societe.libelle_ligne_pluriel|majuscule_initiale }} enregistrés

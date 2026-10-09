@@ -1,0 +1,18 @@
+{% load format_fr %}
+<nav class="actions-page no-print" aria-label="Pages de {{ societe.nom }}">
+  {% if section != 'tableau' %}
+    <a class="btn btn--secondaire" href="{% url 'interface:tableau' societe.code %}"><span class="ico ico-tableau" aria-hidden="true"></span>Tableau de bord</a>
+  {% endif %}
+  <a class="btn{% if section == 'clients' or section == 'corbeille' %} btn--secondaire{% endif %}" href="{% url 'interface:lignes' societe.code %}"
+     {% if section == 'lignes' %}aria-current="page"{% endif %}>
+    <span class="ico ico-operations" aria-hidden="true"></span>{% if section == 'lignes' %}{{ societe.libelle_ligne_pluriel|majuscule_initiale }}{% else %}Voir les {{ societe.libelle_ligne_pluriel }}{% endif %}
+  </a>
+  <a class="btn btn--secondaire" href="{% url 'interface:clients' societe.code %}" {% if section == 'clients' %}aria-current="page"{% endif %}>
+    <span class="ico ico-clients" aria-hidden="true"></span>Clients
+  </a>
+  {% if peut_gerer %}
+    <a class="btn btn--secondaire" href="{% url 'interface:corbeille' societe.code %}" {% if section == 'corbeille' %}aria-current="page"{% endif %}>
+      <span class="ico ico-corbeille" aria-hidden="true"></span>Corbeille
+    </a>
+  {% endif %}
+</nav>

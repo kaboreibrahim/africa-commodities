@@ -37,7 +37,6 @@ class NavigationTests(JeuInterfaceMixin, TestCase):
         for code in ("ooa", "anl"):  # un clic sur une société ouvre directement son tableau de bord, même depuis les dossiers
             self.assertContains(reponse, f'href="{reverse("interface:tableau", args=[code])}"')
         self.assertContains(reponse, 'class="onglet__logo"')
-        self.assertNotContains(reponse, ">Tableau de bord<")
 
     def test_bouton_voir_les_dossiers_et_fenetre_de_saisie(self):
         self.connecter(self.saisie_ooa)
@@ -86,3 +85,24 @@ class DetailEtPdfTests(JeuInterfaceMixin, TestCase):
         self.assertEqual(self.client.get(reverse("interface:ligne_pdf", args=["ooa", self.ligne_saisie_ooa.pk])).status_code, 404)
         self.assertEqual(self.client.get(reverse("interface:lignes_pdf", args=["ooa"])).status_code, 404)
         self.assertEqual(self.client.get(reverse("interface:ligne_detail", args=["ooa", self.ligne_saisie_ooa.pk])).status_code, 404)
+
+
+class BoutonsDeLaSocieteTests(JeuInterfaceMixin, TestCase):
+    def test_boutons_clients_et_corbeille_a_cote_de_voir_les_dossiers(self):
+        self.connecter(self.responsable_ooa)
+        for nom in ("tableau", "lignes", "clients", "corbeille"):
+            with self.subTest(page=nom):
+                reponse = self.client.get(reverse(f"interface:{nom}", args=["ooa"]))
+                self.assertContains(reponse, 'aria-label="Pages de Oils of Africa"')
+                self.assertContains(reponse, f'href="{reverse("interface:clients", args=["ooa"])}"')
+                self.assertContains(reponse, f'href="{reverse("interface:corbeille", args=["ooa"])}"')
+        # plus de boutons Dossiers / Clients / Corbeille dans le menu de gauche
+        menu = self.client.get(reverse("interface:tableau", args=["ooa"])).content.decode().split('id="menu-lateral"')[1].split("</aside>")[0]
+        self.assertNotIn("Corbeille", menu)
+        self.assertNotIn("Clients", menu)
+        self.assertNotIn("Dossiers", menu)
+
+    def test_pas_de_corbeille_sans_droit_de_gestion(self):
+        self.connecter(self.saisie_ooa)
+        self.assertNotContains(self.client.get(reverse("interface:tableau", args=["ooa"])),
+                               reverse("interface:corbeille", args=["ooa"]))

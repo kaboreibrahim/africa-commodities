@@ -15,25 +15,6 @@
           {% include "partials/onglets.html" %}
         </nav>
       </li>
-      {% if societe %}
-        <li>
-          <a class="lateral__lien" href="{% url 'interface:lignes' societe.code %}" {% if section == 'lignes' %}aria-current="page"{% endif %}>
-            <span class="ico ico-operations" aria-hidden="true"></span>{{ societe.libelle_ligne_pluriel|majuscule_initiale }}
-          </a>
-        </li>
-        <li>
-          <a class="lateral__lien" href="{% url 'interface:clients' societe.code %}" {% if section == 'clients' %}aria-current="page"{% endif %}>
-            <span class="ico ico-clients" aria-hidden="true"></span>Clients
-          </a>
-        </li>
-        {% if peut_gerer %}
-          <li>
-            <a class="lateral__lien" href="{% url 'interface:corbeille' societe.code %}" {% if section == 'corbeille' %}aria-current="page"{% endif %}>
-              <span class="ico ico-corbeille" aria-hidden="true"></span>Corbeille
-            </a>
-          </li>
-        {% endif %}
-      {% endif %}
       {% if voit_groupe %}
         <li>
           <a class="lateral__lien" href="{% url 'interface:groupe' %}" {% if not societe and section == 'groupe' %}aria-current="page"{% endif %}>

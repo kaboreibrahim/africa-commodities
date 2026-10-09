@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block titre %}{{ societe.code|upper }} – Clients{% endblock %}
 {% block contenu %}
+  {% include "partials/_actions_societe.html" %}
   {% include "partials/clients.html" %}
   <dialog class="dialogue" id="dialogue-client" aria-labelledby="titre-dialogue">
     <div id="dialogue-contenu"></div>
