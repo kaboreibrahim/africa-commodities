@@ -14,14 +14,17 @@ PROJ_DIR = Path(__file__).resolve().parent
 if str(PROJ_DIR) not in sys.path:
     sys.path.insert(0, str(PROJ_DIR))
 
-# Le .env peut surcharger le module de réglages (rarement utile) ; sinon : production.
+# Sur le serveur web, TOUJOURS les réglages de production (DEBUG désactivé : une page d'erreur de débogage exposerait
+# le code, les chemins et la configuration). Cela l'emporte sur une variable d'environnement mal réglée dans cPanel.
+os.environ["DJANGO_SETTINGS_MODULE"] = "config.settings.prod"
+
+# Les valeurs sensibles (clé secrète, base MySQL, domaines) viennent du .env placé à côté de ce fichier.
 try:
     import environ
 
     environ.Env.read_env(PROJ_DIR / ".env")
 except ImportError:
     pass
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.prod")
 
 from django.core.wsgi import get_wsgi_application  # noqa: E402
 
