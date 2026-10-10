@@ -79,10 +79,29 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-# Base de données : PostgreSQL en production, SQLite possible en dev.
-DATABASES = {
-    "default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
-}
+# Base de données.
+# - MySQL / MariaDB (hébergement cPanel) : variables DB_NAME, DB_USER, DB_PASSWORD (+ DB_HOST, DB_PORT).
+#   Variables séparées plutôt qu'une URL : un mot de passe contenant @ ] $ / : n'a pas à être encodé.
+# - PostgreSQL : DATABASE_URL=postgres://... ; sans rien, SQLite est utilisé (développement).
+if env("DB_NAME", default=""):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": env("DB_NAME"),
+            "USER": env("DB_USER"),
+            "PASSWORD": env("DB_PASSWORD"),
+            "HOST": env("DB_HOST", default="localhost"),
+            "PORT": env("DB_PORT", default="3306"),
+            "OPTIONS": {
+                "charset": "utf8mb4",
+                "init_command": "SET sql_mode='STRICT_TRANS_TABLES'",
+            },
+        }
+    }
+else:
+    DATABASES = {
+        "default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
+    }
 DATABASES["default"]["ATOMIC_REQUESTS"] = True  # chaque requête = une transaction
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("DB_CONN_MAX_AGE", default=60)
 

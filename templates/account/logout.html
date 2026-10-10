@@ -1,11 +1,16 @@
 {% extends "base_auth.html" %}
 {% block head_title %}Déconnexion{% endblock %}
+{% block carte_classe %} carte--entree{% endblock %}
+{% block html_attrs %} data-reinit-rideau{% endblock %}
 {% block content %}
-  <h1>Déconnexion</h1>
-  <p>Voulez-vous vraiment vous déconnecter ?</p>
-  <form method="post" action="{% url 'account_logout' %}">
+  <div class="entete-carte">
+    <p class="surtitre"><span class="ico ico-lock" aria-hidden="true"></span>Espace sécurisé</p>
+    <h1>Se déconnecter</h1>
+    <p class="sous-titre">Voulez-vous vraiment fermer votre session ?</p>
+  </div>
+  <form method="post" action="{% url 'account_logout' %}" class="auth-form" data-chargement>
     {% csrf_token %}
     {{ redirect_field }}
-    <button type="submit">Se déconnecter</button>
+    <button type="submit" class="bouton" data-libelle-chargement="Déconnexion…"><span class="bouton__texte">Se déconnecter</span></button>
   </form>
 {% endblock %}

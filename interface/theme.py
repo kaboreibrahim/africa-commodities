@@ -2,7 +2,7 @@
 from django.contrib.staticfiles import finders
 from django.templatetags.static import static
 
-THEME_GROUPE = {"principale": "#1A2B4A", "foncee": "#0F1A2E", "accent": "#E8720C"}
+THEME_GROUPE = {"principale": "#004B2F", "foncee": "#063B29", "accent": "#C69214"}
 
 # Palette fixe des postes de répartition (validée pour les daltoniens : ne pas modifier).
 COULEURS_POSTES = {
@@ -43,6 +43,9 @@ def css_theme(societe=None, societes=()) -> str:
 def url_logo(societe) -> str | None:
     """Logo téléversé, sinon logo fourni avec l'application (static/img/logos/<code>.*), sinon None."""
     if societe is None:
+        chemin_groupe = "img/logos/africa-group-logo.png"
+        if finders.find(chemin_groupe):
+            return static(chemin_groupe)
         return None
     if societe.logo:
         return societe.logo.url

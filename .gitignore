@@ -1,4 +1,6 @@
 .env
+.env.*
+!.env.example
 *.sqlite3
 __pycache__/
 staticfiles/
@@ -7,3 +9,4 @@ media/
 .coverage
 htmlcov/
 demo.sqlite3
+.history/

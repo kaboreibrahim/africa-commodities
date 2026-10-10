@@ -1,23 +1,87 @@
 {% extends "base_auth.html" %}
+{% load static %}
 {% block head_title %}Connexion{% endblock %}
+
+{# Le rideau ne joue que sur un affichage « neuf » (GET sans erreur), jamais après une tentative échouée. #}
+{% block html_attrs %}{% if request.method == "GET" and not form.errors %} data-rideau{% endif %}{% endblock %}
+
+{% block rideau %}
+  {% if request.method == "GET" and not form.errors %}
+    {% for cote in "gd" %}
+      <div class="rideau {% if cote == 'g' %}rideau--gauche{% else %}rideau--droite{% endif %}" aria-hidden="true">
+        <div class="rideau__scene">
+          <span class="medaillon medaillon--rideau">
+            <picture>
+              <source srcset="{% static 'img/embleme-groupe.webp' %}" type="image/webp">
+              <img src="{% static 'img/embleme-groupe.png' %}" width="360" height="360" alt="">
+            </picture>
+            <span class="medaillon__reflet"></span>
+          </span>
+          <span class="rideau__nom">Africa Commodities &amp; Renewables Group</span>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
+
+{% block carte_classe %}{% if form.errors %} carte--secousse{% elif request.method == "GET" %} carte--entree{% endif %}{% endblock %}
+
 {% block content %}
-  <h1>Connexion</h1>
-  <form method="post" action="{% url 'account_login' %}">
+  <div class="entete-carte apparait delai-1">
+    <p class="surtitre"><span class="ico ico-lock" aria-hidden="true"></span>Espace sécurisé</p>
+    <h1>Connexion</h1>
+    <p class="sous-titre">Accédez à votre tableau de bord avec vos identifiants professionnels.</p>
+  </div>
+
+  {% if request.GET.session == "expiree" %}
+    <p class="alerte alerte--info" role="status"><span class="ico ico-info" aria-hidden="true"></span><span>Votre session a expiré après 2 heures d'inactivité.</span></p>
+  {% endif %}
+  {% if form.errors %}
+    <p class="alerte alerte--erreur" role="alert"><span class="ico ico-alerte" aria-hidden="true"></span><span>Adresse e-mail ou mot de passe incorrect.</span></p>
+  {% endif %}
+
+  <form method="post" action="{% url 'account_login' %}" class="auth-form" data-chargement>
     {% csrf_token %}
-    {{ form.non_field_errors }}
-    <p>
+    <div class="champ apparait delai-2">
       <label for="id_login">Adresse e-mail</label>
-      <input type="email" name="login" id="id_login" autocomplete="email" required autofocus
-             value="{{ form.login.value|default_if_none:'' }}">
-      {{ form.login.errors }}
-    </p>
-    <p>
+      <div class="champ__boite">
+        <span class="ico ico-mail champ__icone" aria-hidden="true"></span>
+        <input type="email" name="login" id="id_login" autocomplete="username" autocapitalize="none" spellcheck="false"
+               required placeholder="nom@entreprise.com" value="{{ form.login.value|default_if_none:'' }}"
+               {% if form.errors %}aria-invalid="true"{% else %}autofocus{% endif %}>
+      </div>
+    </div>
+
+    <div class="champ apparait delai-3">
       <label for="id_password">Mot de passe</label>
-      <input type="password" name="password" id="id_password" autocomplete="current-password" required>
-      {{ form.password.errors }}
+      <div class="champ__boite">
+        <span class="ico ico-lock champ__icone" aria-hidden="true"></span>
+        <input type="password" name="password" id="id_password" autocomplete="current-password" required
+               aria-describedby="alerte-majuscules"{% if form.errors %} aria-invalid="true"{% endif %}>
+        <button type="button" class="champ__bouton" data-afficher-mdp="id_password"
+                aria-pressed="false" aria-label="Afficher le mot de passe">
+          <span class="ico ico-oeil" aria-hidden="true"></span>
+        </button>
+      </div>
+      <p class="champ__alerte" id="alerte-majuscules" data-majuscules hidden>
+        <span class="ico ico-alerte" aria-hidden="true"></span>Verr. Maj activé
+      </p>
+    </div>
+
+    <p class="lien-oubli apparait delai-4">
+      {% if email_configure %}
+        <a href="{% url 'account_reset_password' %}">Mot de passe oublié ?</a>
+      {% else %}
+        <span>Mot de passe oublié ? Contactez l'administrateur du groupe.</span>
+      {% endif %}
     </p>
+
     {{ redirect_field }}
-    <button type="submit">Se connecter</button>
+    <div class="apparait delai-5">
+      <button type="submit" class="bouton" data-libelle-chargement="Vérification…">
+        <span class="bouton__texte">Se connecter</span>
+      </button>
+      <p class="confiance"><span class="ico ico-bouclier" aria-hidden="true"></span><span>Connexion chiffrée · Double authentification · Activité journalisée</span></p>
+    </div>
   </form>
-  <p class="helptext">Pas de compte ? Les accès sont créés par l'administrateur du groupe.</p>
 {% endblock %}

@@ -1,28 +1,84 @@
 {% load static %}<!DOCTYPE html>
-<html lang="fr">
+<html lang="fr"{% block html_attrs %}{% endblock %}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>{% block head_title %}{% endblock %} – Suivi des marges</title>
+  <meta name="theme-color" content="#0B3D24">
+  <title>{% block head_title %}{% endblock %} — Africa Commodities &amp; Renewables Group</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
+  <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/icon-192.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="{% static 'fonts/montserrat-latin-700-normal.woff2' %}">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="{% static 'fonts/inter-latin-400-normal.woff2' %}">
   <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+  <script src="{% static 'js/connexion.js' %}"></script>
+  <script src="{% static 'js/auth.js' %}" defer></script>
+  <script src="{% static 'js/otp.js' %}" defer></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body>
-  <main class="carte">
-    <p class="marque">Groupe – Suivi des marges</p>
-    {% if messages %}
-      <ul class="messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
-    {% endif %}
-    {% block content %}{% endblock %}
-    {% if user.is_authenticated %}
-      <nav class="menu">
-        <a href="{% url 'interface:accueil' %}">Accueil</a>
-        <a href="{% url 'mfa_index' %}">Double authentification</a>
-        <a href="{% url 'account_change_password' %}">Mot de passe</a>
-        <a href="{% url 'account_logout' %}">Se déconnecter</a>
-      </nav>
-    {% endif %}
+  {% block rideau %}{% endblock %}
+  <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+  <main class="auth-shell" id="page">
+    <aside class="marque" aria-label="Africa Commodities &amp; Renewables Group">
+      <div class="marque__mobile">
+        <span class="medaillon medaillon--bandeau">
+          <picture>
+            <source srcset="{% static 'img/embleme-groupe.webp' %}" type="image/webp">
+            <img src="{% static 'img/embleme-groupe.png' %}" width="360" height="360" alt="">
+          </picture>
+        </span>
+        <span class="marque__nom">Africa Commodities &amp; Renewables Group</span>
+      </div>
+
+      <div class="marque__logo">
+        <picture>
+          <source srcset="{% static 'img/logo-groupe.webp' %}" type="image/webp">
+          <img src="{% static 'img/logo-groupe.png' %}" width="480" height="480" alt="Africa Commodities &amp; Renewables Group">
+        </picture>
+      </div>
+
+      <div class="marque__texte">
+        <p class="marque__titre">Pilotage des marges du groupe</p>
+        <p class="marque__sous-titre">Suivi consolidé des performances et de la répartition vers Africa Commodities</p>
+      </div>
+
+      <ul class="marque__societes" aria-label="Sociétés du groupe">
+        <li>Oils of Africa</li>
+        <li>Africa Newport &amp; Logistics</li>
+        <li>OTL &amp; Bulk Liquid</li>
+        <li>Alon Properties</li>
+        <li>Mon Livreur Pro</li>
+      </ul>
+
+      <div class="marque__pied">
+        <p class="marque__devise">Empowering African Resources Worldwide</p>
+        <p class="marque__copyright">© {% now "Y" %} Africa Commodities &amp; Renewables Group</p>
+      </div>
+      <img class="marque__courbe" src="{% static 'img/courbe-doree.svg' %}" width="400" height="400" alt="">
+    </aside>
+
+    <section class="formulaire" id="contenu">
+      <div class="carte{% block carte_classe %}{% endblock %}">
+        {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <p class="alerte alerte--info" role="status"><span class="ico ico-info" aria-hidden="true"></span><span>{{ message }}</span></p>
+            {% endfor %}
+          </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+        {% if user.is_authenticated %}
+          <nav class="menu" aria-label="Compte">
+            <a href="{% url 'interface:accueil' %}">Accueil</a>
+            <a href="{% url 'mfa_index' %}">Double authentification</a>
+            <a href="{% url 'account_change_password' %}">Mot de passe</a>
+            <a href="{% url 'account_logout' %}">Se déconnecter</a>
+          </nav>
+        {% endif %}
+      </div>
+    </section>
   </main>
   {% block extra_body %}{% endblock %}
 </body>

@@ -2,6 +2,9 @@ Django==5.2.18                    # version LTS (support jusqu'en avril 2028)
 django-environ==0.14.0
 argon2-cffi==25.1.0
 psycopg[binary]==3.3.6            # PostgreSQL
+PyMySQL==1.2.3                   # MySQL / MariaDB sans compilation (alternative : mysqlclient)
+cryptography>=43                  # authentification MySQL 8 (caching_sha2_password) pour PyMySQL
+whitenoise==6.12.0               # fichiers statiques en production (cPanel)
 Pillow==12.3.0                    # logos des sociétés (et vérification des images)
 reportlab==5.0.1                  # récapitulatifs PDF des lignes
 

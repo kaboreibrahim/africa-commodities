@@ -1,10 +1,11 @@
 {% extends "base_auth.html" %}
-{% block head_title %}Compte bloqué{% endblock %}
+{% block head_title %}Accès suspendu{% endblock %}
+{% block carte_classe %} carte--entree{% endblock %}
 {% block content %}
-  <h1>Connexion temporairement bloquée</h1>
-  <p class="alerte">
-    Trop de tentatives de connexion ont échoué. Par sécurité, la connexion est bloquée
-    pendant 30 minutes pour cet identifiant depuis cet appareil.
-  </p>
-  <p>Si vous avez oublié votre mot de passe, contactez l'administrateur du groupe.</p>
+  <div class="entete-carte entete-carte--centre">
+    <span class="icone-or" aria-hidden="true"><span class="ico ico-lock"></span></span>
+    <h1>Accès temporairement suspendu</h1>
+    <p class="sous-titre">Trop de tentatives ont échoué. Pour votre sécurité, l'accès est bloqué pendant 30 minutes. Si vous n'êtes pas à l'origine de ces tentatives, prévenez l'administrateur.</p>
+  </div>
+  <p class="pied-carte"><a href="{% url 'account_login' %}">Retour à la connexion</a></p>
 {% endblock %}

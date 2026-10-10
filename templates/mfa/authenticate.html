@@ -1,22 +1,76 @@
 {% extends "base_auth.html" %}
-{% block head_title %}Double authentification{% endblock %}
+{% load static %}
+{% block head_title %}Vérification{% endblock %}
+{% block carte_classe %} carte--entree{% endblock %}
 {% block content %}
-  <h1>Double authentification</h1>
-  <p>Saisissez le code à 6 chiffres de votre application d'authentification, ou l'un de vos codes de récupération.</p>
-  <form method="post" action="{% url 'mfa_authenticate' %}">
+  {% with recuperation=request.GET.mode erreur=form.errors %}
+  <ol class="etapes" aria-label="Progression">
+    <li class="etape etape--faite"><span class="etape__pastille"><span class="ico ico-coche" aria-hidden="true"></span></span><span class="sr-only">Étape 1 faite : mot de passe</span></li>
+    <li class="etape etape--active" aria-current="step"><span class="etape__pastille"></span><span class="sr-only">Étape 2 : code</span></li>
+    <li class="etapes__texte">Étape 2 sur 2</li>
+  </ol>
+
+  <div class="entete-carte entete-carte--centre">
+    <span class="medaillon medaillon--2fa">
+      <picture>
+        <source srcset="{% static 'img/embleme-groupe.webp' %}" type="image/webp">
+        <img src="{% static 'img/embleme-groupe.png' %}" width="360" height="360" alt="">
+      </picture>
+      <span class="medaillon__badge"><span class="ico ico-bouclier" aria-hidden="true"></span></span>
+    </span>
+    <h1>Vérification en deux étapes</h1>
+    {% if recuperation == "recuperation" %}
+      <p class="sous-titre" id="aide-code">Saisissez l'un de vos codes de récupération. Chaque code ne fonctionne qu'une seule fois.</p>
+    {% else %}
+      <p class="sous-titre" id="aide-code">Saisissez le code à 6 chiffres affiché dans votre application d'authentification (Google Authenticator, Microsoft Authenticator…).</p>
+    {% endif %}
+  </div>
+
+  {% if erreur %}
+    <p class="alerte alerte--erreur" role="alert"><span class="ico ico-alerte" aria-hidden="true"></span><span>{% if recuperation == "recuperation" %}Code de récupération incorrect ou déjà utilisé.{% else %}Code incorrect ou expiré. Réessayez avec le code actuel.{% endif %}</span></p>
+  {% endif %}
+
+  <form method="post" action="{% url 'mfa_authenticate' %}{% if recuperation == 'recuperation' %}?mode=recuperation{% endif %}" class="auth-form" data-chargement>
     {% csrf_token %}
-    {{ form.non_field_errors }}
-    <p>
-      <label for="id_code">Code</label>
-      <input type="text" name="code" id="id_code" autocomplete="one-time-code" required autofocus>
-      {{ form.code.errors }}
-    </p>
+    {% if recuperation == "recuperation" %}
+      <div class="champ">
+        <label for="code">Code de récupération</label>
+        <div class="champ__boite">
+          <span class="ico ico-cle champ__icone" aria-hidden="true"></span>
+          <input id="code" name="code" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" required
+                 aria-describedby="aide-code"{% if erreur %} aria-invalid="true"{% endif %} autofocus>
+        </div>
+      </div>
+    {% else %}
+      {% include "mfa/_cases_otp.html" %}
+      <div class="anneau" data-anneau aria-live="off">
+        <svg class="anneau__svg" viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false">
+          <circle class="anneau__fond" cx="20" cy="20" r="17"/>
+          <circle class="anneau__arc" cx="20" cy="20" r="17" data-anneau-arc transform="rotate(-90 20 20)"/>
+        </svg>
+        <span class="anneau__texte">Nouveau code dans <span data-anneau-secondes>30</span> s</span>
+      </div>
+    {% endif %}
     {{ redirect_field }}
-    <button type="submit">Valider</button>
+    <button type="submit" class="bouton" data-libelle-chargement="Vérification…"><span class="bouton__texte">Vérifier</span></button>
   </form>
-  <form method="post" action="{% url 'account_logout' %}">
-    {% csrf_token %}
-    <input type="hidden" name="next" value="{% url 'account_login' %}">
-    <p class="helptext"><button type="submit" class="bouton">Annuler</button></p>
-  </form>
+
+  <ul class="liens-secondaires">
+    <li>
+      {% if recuperation == "recuperation" %}
+        <a href="{% url 'mfa_authenticate' %}">Utiliser le code de mon application</a>
+      {% else %}
+        <a href="{% url 'mfa_authenticate' %}?mode=recuperation">Utiliser un code de récupération</a>
+      {% endif %}
+    </li>
+    <li>
+      <form method="post" action="{% url 'account_logout' %}" id="logout-from-stage">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'account_login' %}">
+        <button type="submit" class="lien-bouton">Changer de compte</button>
+      </form>
+    </li>
+  </ul>
+  <p class="pied-carte">Code perdu ou téléphone changé ? Contactez l'administrateur du groupe.</p>
+  {% endwith %}
 {% endblock %}

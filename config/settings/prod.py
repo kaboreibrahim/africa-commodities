@@ -4,17 +4,17 @@ Réglages de production. Vérifier avec : python manage.py check --deploy --sett
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *  # noqa: F401,F403
-from .base import DATABASES, SECRET_KEY, env
+from .base import DATABASES, MIDDLEWARE, SECRET_KEY, env
 
 DEBUG = False
 
 # --- Garde-fous : refuser de démarrer avec une configuration dangereuse ---
 if len(SECRET_KEY) < 50:
     raise ImproperlyConfigured("DJANGO_SECRET_KEY doit faire au moins 50 caractères en production.")
-if not env("DATABASE_URL", default=""):
-    raise ImproperlyConfigured("DATABASE_URL est obligatoire en production (PostgreSQL).")
+if not (env("DATABASE_URL", default="") or env("DB_NAME", default="")):
+    raise ImproperlyConfigured("Base de données obligatoire en production : DB_NAME/DB_USER/DB_PASSWORD (MySQL) ou DATABASE_URL (PostgreSQL).")
 if "sqlite" in DATABASES["default"]["ENGINE"]:
-    raise ImproperlyConfigured("SQLite n'est pas autorisé en production : utiliser PostgreSQL.")
+    raise ImproperlyConfigured("SQLite n'est pas autorisé en production : utiliser MySQL ou PostgreSQL.")
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=[])
 if not ALLOWED_HOSTS:
     raise ImproperlyConfigured("DJANGO_ALLOWED_HOSTS ne doit pas être vide en production.")
@@ -37,3 +37,16 @@ MFA_TRUST_COOKIE_SECURE = True
 # X-Forwarded-For, en prenant l'adresse ajoutée par Nginx (la plus à droite). Voir comptes/axes.py.
 # Nginx : proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 NB_PROXYS_DE_CONFIANCE = env.int("DJANGO_NB_PROXYS_DE_CONFIANCE", default=1)
+
+# Fichiers statiques servis par l'application elle-même (WhiteNoise) : fonctionne sur cPanel sans règle Apache.
+# Les noms de fichiers sont versionnés (empreinte) : plus de CSS/JS périmé en cache après une mise à jour.
+# Prérequis au déploiement : python manage.py collectstatic --noinput
+MIDDLEWARE = [MIDDLEWARE[0], "whitenoise.middleware.WhiteNoiseMiddleware", *MIDDLEWARE[1:]]
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
+
+# Fichiers téléversés (logos des sociétés) : sur cPanel, dossier public servi par Apache (voir DEPLOIEMENT_CPANEL.md).
+MEDIA_ROOT = env("DJANGO_MEDIA_ROOT", default=str(BASE_DIR / "media"))
+MEDIA_URL = env("DJANGO_MEDIA_URL", default="/media/")

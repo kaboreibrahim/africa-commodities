@@ -1,0 +1,36 @@
+{% extends "mfa/recovery_codes/base.html" %}
+{% block head_title %}Codes de récupération{% endblock %}
+{% block carte_classe %} carte--entree carte--large{% endblock %}
+{% block content %}
+  <div class="entete-carte">
+    <p class="surtitre"><span class="ico ico-cle" aria-hidden="true"></span>Sécurité du compte</p>
+    <h1>Codes de récupération</h1>
+    <p class="sous-titre">{{ unused_codes|length }} code{{ unused_codes|length|pluralize }} disponible{{ unused_codes|length|pluralize }} sur {{ total_count }}. Chaque code ne fonctionne qu'une seule fois : gardez-les pour le cas où vous perdriez votre téléphone.</p>
+  </div>
+
+  {% if can_view_codes %}
+    <ul class="codes" id="codes-recuperation">
+      {% for code in unused_codes %}<li>{{ code }}</li>{% endfor %}
+    </ul>
+    <div class="actions-codes">
+      <button type="button" class="bouton bouton--discret" data-copier="#codes-recuperation">
+        <span class="ico ico-copier" aria-hidden="true"></span><span data-copier-texte>Copier</span>
+      </button>
+      {% if can_download_codes %}
+        <a class="bouton bouton--discret" href="{% url 'mfa_download_recovery_codes' %}">
+          <span class="ico ico-telecharger" aria-hidden="true"></span>Télécharger (.txt)
+        </a>
+      {% endif %}
+    </div>
+    <label class="case-confirmation">
+      <input type="checkbox" id="codes-conserves" data-confirmation-codes>
+      <span>J'ai conservé mes codes en lieu sûr</span>
+    </label>
+    <a class="bouton bouton--desactive" href="{% url 'mfa_index' %}" data-continuer-codes aria-disabled="true">Continuer</a>
+  {% else %}
+    <p class="sous-titre">Les codes ne peuvent plus être affichés. Vous pouvez en générer de nouveaux.</p>
+  {% endif %}
+  {% if can_generate_codes %}
+    <p class="pied-carte"><a href="{% url 'mfa_generate_recovery_codes' %}">Générer de nouveaux codes</a></p>
+  {% endif %}
+{% endblock %}

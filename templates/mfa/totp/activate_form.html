@@ -1,26 +1,45 @@
 {% extends "base_auth.html" %}
 {% block head_title %}Activer la double authentification{% endblock %}
+{% block carte_classe %} carte--entree carte--large{% endblock %}
 {% block content %}
-  <h1>Activer la double authentification</h1>
-  <p>
-    Scannez ce QR code avec votre application d'authentification (Google Authenticator,
-    Microsoft Authenticator, FreeOTP…), puis saisissez le code à 6 chiffres qu'elle affiche.
-  </p>
-  <img src="{{ totp_svg_data_uri }}" alt="QR code de la double authentification" width="200" height="200">
-  <form method="post" action="{% url 'mfa_activate_totp' %}">
-    {% csrf_token %}
-    <p>
-      <label for="cle_secrete">Clé secrète (si vous ne pouvez pas scanner)</label>
-      <input type="text" id="cle_secrete" value="{{ form.secret }}" disabled>
-      <span>Conservez-la en lieu sûr : elle permet de réinstaller l'application.</span>
-    </p>
-    {{ form.non_field_errors }}
-    <p>
-      <label for="id_code">Code à 6 chiffres</label>
-      <input type="text" name="code" id="id_code" inputmode="numeric" autocomplete="one-time-code"
-             pattern="[0-9]{6}" maxlength="6" required autofocus>
-      {{ form.code.errors }}
-    </p>
-    <button type="submit">Activer</button>
-  </form>
+  <div class="entete-carte">
+    <p class="surtitre"><span class="ico ico-bouclier" aria-hidden="true"></span>Sécurité du compte</p>
+    <h1>Activer la double authentification</h1>
+    <p class="sous-titre">Trois étapes rapides pour protéger votre accès.</p>
+  </div>
+
+  <ol class="pas-a-pas">
+    <li>
+      <h2><span class="pas-a-pas__num">1</span>Installer une application</h2>
+      <p>Installez Google Authenticator, Microsoft Authenticator ou FreeOTP sur votre téléphone.</p>
+    </li>
+    <li>
+      <h2><span class="pas-a-pas__num">2</span>Scanner le QR code</h2>
+      <div class="qr">
+        <img src="{{ totp_svg_data_uri }}" alt="QR code de la double authentification" width="180" height="180">
+      </div>
+      <div class="cle">
+        <label for="cle_secrete">Clé secrète (si vous ne pouvez pas scanner)</label>
+        <div class="cle__ligne">
+          <input type="text" id="cle_secrete" value="{{ form.secret }}" readonly>
+          <button type="button" class="bouton bouton--discret" data-copier="#cle_secrete">
+            <span class="ico ico-copier" aria-hidden="true"></span><span data-copier-texte>Copier</span>
+          </button>
+        </div>
+        <p class="aide">Conservez-la en lieu sûr : elle permet de réinstaller l'application.</p>
+      </div>
+    </li>
+    <li>
+      <h2><span class="pas-a-pas__num">3</span>Saisir le code</h2>
+      <p id="aide-code">Entrez le code à 6 chiffres affiché par l'application.</p>
+      {% if form.errors %}
+        <p class="alerte alerte--erreur" role="alert"><span class="ico ico-alerte" aria-hidden="true"></span><span>Code incorrect ou expiré. Réessayez avec le code actuel.</span></p>
+      {% endif %}
+      <form method="post" action="{% url 'mfa_activate_totp' %}" class="auth-form" data-chargement>
+        {% csrf_token %}
+        {% with erreur=form.errors %}{% include "mfa/_cases_otp.html" %}{% endwith %}
+        <button type="submit" class="bouton" data-libelle-chargement="Vérification…"><span class="bouton__texte">Activer</span></button>
+      </form>
+    </li>
+  </ol>
 {% endblock %}

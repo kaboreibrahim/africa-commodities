@@ -1,0 +1,7 @@
+{# Un seul vrai champ « code », présenté comme 6 cases par otp.js. Sans JavaScript : champ simple. #}
+<div class="otp" data-otp{% if erreur %} data-erreur{% endif %}>
+  <label class="sr-only" for="code">Code de vérification à 6 chiffres</label>
+  <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}"
+         maxlength="6" required aria-describedby="aide-code"{% if erreur %} aria-invalid="true"{% endif %} class="otp-input" autofocus>
+  <div class="otp-cases" aria-hidden="true"><span></span><span></span><span></span><span class="otp-tiret"></span><span></span><span></span><span></span></div>
+</div>
