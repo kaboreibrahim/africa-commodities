@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
   <title>{% block titre %}Erreur{% endblock %} – Suivi des marges</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/favicon-32.png' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body class="page-erreur">
   <main class="carte carte--erreur">
+    <picture>
+      <source srcset="{% static 'img/logo-groupe.webp' %}" type="image/webp">
+      <img class="page-erreur__logo" src="{% static 'img/logo-groupe.png' %}" width="160" height="160" alt="Africa Commodities &amp; Renewables Group">
+    </picture>
     <p class="page-erreur__code">{% block code %}{% endblock %}</p>
     <h1>{% block titre_page %}{% endblock %}</h1>
     <p>{% block message %}{% endblock %}</p>

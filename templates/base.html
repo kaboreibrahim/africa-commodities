@@ -59,10 +59,12 @@
             <span class="visuellement-cache">Menu du compte</span>
           </summary>
           <ul>
+            <li><a href="{% url 'interface:mon_compte' %}"><span class="ico ico-compte" aria-hidden="true"></span>Mon compte</a></li>
             <li><a href="{% url 'mfa_index' %}"><span class="ico ico-cadenas" aria-hidden="true"></span>Double authentification</a></li>
             <li><a href="{% url 'account_change_password' %}"><span class="ico ico-compte" aria-hidden="true"></span>Changer de mot de passe</a></li>
             <li><a href="{% url 'interface:regle' %}"><span class="ico ico-regle" aria-hidden="true"></span>Règle de répartition</a></li>
             {% if peut_administrer %}<li><a href="{% url 'interface:habilitations' %}"><span class="ico ico-habilitations" aria-hidden="true"></span>Habilitations</a></li>{% endif %}
+            {% if peut_administrer %}<li><a href="{% url 'interface:journal' %}"><span class="ico ico-alerte" aria-hidden="true"></span>Journal</a></li>{% endif %}
             {% if peut_administrer %}<li><a href="{% url 'admin:index' %}"><span class="ico ico-societes" aria-hidden="true"></span>Administration</a></li>{% endif %}
             <li><a href="{% url 'account_logout' %}"><span class="ico ico-sortie" aria-hidden="true"></span>Déconnexion</a></li>
           </ul>

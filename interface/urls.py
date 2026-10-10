@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views, views_clients, views_habilitations, views_lignes
+from . import views, views_clients, views_compte, views_habilitations, views_lignes
 
 app_name = "interface"
 
@@ -11,6 +11,8 @@ urlpatterns = [
     path("groupe/", views.VueGroupeView.as_view(), name="groupe"),
     path("groupe/recap.pdf", views.VueGroupePdfView.as_view(), name="groupe_pdf"),
     path("regle/", views.RegleView.as_view(), name="regle"),
+    path("administration/journal/", views_compte.JournalView.as_view(), name="journal"),
+    path("mon-compte/", views_compte.MonCompteView.as_view(), name="mon_compte"),
     path("administration/habilitations/", views_habilitations.UtilisateursView.as_view(), name="habilitations"),
     path("administration/habilitations/matrice/", views_habilitations.MatriceView.as_view(), name="habilitations_matrice"),
     path("administration/habilitations/nouveau/", views_habilitations.NouvelUtilisateurView.as_view(),

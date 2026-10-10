@@ -34,6 +34,13 @@
           </a>
         </li>
       {% endif %}
+      {% if peut_administrer %}
+        <li>
+          <a class="lateral__lien" href="{% url 'interface:journal' %}" {% if section == 'journal' %}aria-current="page"{% endif %}>
+            <span class="ico ico-alerte" aria-hidden="true"></span>Journal
+          </a>
+        </li>
+      {% endif %}
     </ul>
   </nav>
 

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block titre %}Journal de sécurité{% endblock %}
+{% block sous_titre %}Administration — journal de sécurité{% endblock %}
+{% block contenu %}
+  {% include "partials/hab_nav.html" %}
+  <section class="carte">
+    <div class="entete-section">
+      <h2>Journal de sécurité <small>{{ page.paginator.count }} entrée{{ page.paginator.count|pluralize }}</small></h2>
+      <a class="btn btn--secondaire no-print" href="?{{ parametres }}{% if parametres %}&amp;{% endif %}format=csv">
+        <span class="ico ico-telecharger" aria-hidden="true"></span>Exporter en CSV
+      </a>
+    </div>
+
+    <form class="filtres no-print" method="get" action="{% url 'interface:journal' %}">
+      <div class="champ"><label for="{{ formulaire.evenement.id_for_label }}">{{ formulaire.evenement.label }}</label>{{ formulaire.evenement }}</div>
+      <div class="champ"><label for="{{ formulaire.q.id_for_label }}">{{ formulaire.q.label }}</label>{{ formulaire.q }}</div>
+      <div class="champ"><label for="{{ formulaire.du.id_for_label }}">{{ formulaire.du.label }}</label>{{ formulaire.du }}</div>
+      <div class="champ"><label for="{{ formulaire.au.id_for_label }}">{{ formulaire.au.label }}</label>{{ formulaire.au }}</div>
+      <button type="submit" class="btn btn--secondaire">Filtrer</button>
+      <a class="btn btn--secondaire" href="{% url 'interface:journal' %}">Réinitialiser</a>
+    </form>
+
+    {% if lignes %}
+      <div class="cadre-tableau">
+        <table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Entrées du journal de sécurité</caption>
+          <thead><tr><th scope="col">Date</th><th scope="col">Événement</th><th scope="col">Utilisateur</th><th scope="col">Adresse IP</th><th scope="col">Détails</th></tr></thead>
+          <tbody>
+            {% for l in lignes %}
+              <tr>
+                <td>{{ l.e.date|date:"d/m/Y H:i:s" }}</td>
+                <td><span class="evenement evenement--{{ l.famille }}">
+                  <span class="ico {% if l.famille == 'alerte' %}ico-alerte{% elif l.famille == 'securite' %}ico-cadenas{% elif l.famille == 'droits' %}ico-habilitations{% else %}ico-ok{% endif %}" aria-hidden="true"></span>
+                  {{ l.e.get_evenement_display }}<span class="visuellement-cache"> ({{ l.libelle_famille }})</span></span></td>
+                <td>{% if l.e.utilisateur %}{{ l.e.utilisateur.email }}{% elif l.e.identifiant_saisi %}{{ l.e.identifiant_saisi }}{% else %}—{% endif %}</td>
+                <td>{{ l.e.ip|default:"—" }}</td>
+                <td class="texte-long">
+                  {% if l.a_detail %}
+                    <details class="detail-journal">
+                      <summary>Voir</summary>
+                      {% if l.autres %}<dl class="detail-ligne">{% for cle, valeur in l.autres %}<div><dt>{{ cle }}</dt><dd>{{ valeur }}</dd></div>{% endfor %}</dl>{% endif %}
+                      {% if l.avant or l.apres %}
+                        <div class="avant-apres">
+                          <div><p class="libelle">Avant</p><dl class="detail-ligne">{% for cle, valeur in l.avant %}<div><dt>{{ cle }}</dt><dd>{{ valeur }}</dd></div>{% empty %}<p class="aide">—</p>{% endfor %}</dl></div>
+                          <div><p class="libelle">Après</p><dl class="detail-ligne">{% for cle, valeur in l.apres %}<div><dt>{{ cle }}</dt><dd>{{ valeur }}</dd></div>{% empty %}<p class="aide">—</p>{% endfor %}</dl></div>
+                        </div>
+                      {% endif %}
+                    </details>
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="etat-vide"><span class="ico ico-vide" aria-hidden="true"></span><p><strong>Aucune entrée ne correspond à ces filtres.</strong></p></div>
+    {% endif %}
+
+    {% if page.has_other_pages %}
+      <nav class="pagination" aria-label="Pages">
+        {% if page.has_previous %}<a class="btn btn--secondaire btn--petit" href="?{{ parametres }}{% if parametres %}&amp;{% endif %}page={{ page.previous_page_number }}">‹ Précédente</a>{% endif %}
+        <span>Page {{ page.number }} sur {{ page.paginator.num_pages }}</span>
+        {% if page.has_next %}<a class="btn btn--secondaire btn--petit" href="?{{ parametres }}{% if parametres %}&amp;{% endif %}page={{ page.next_page_number }}">Suivante ›</a>{% endif %}
+      </nav>
+    {% endif %}
+    <p class="aide">Le journal ne contient jamais de mot de passe, de code de double authentification ni de jeton.</p>
+  </section>
+{% endblock %}

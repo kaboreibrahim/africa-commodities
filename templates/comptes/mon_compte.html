@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block titre %}Mon compte{% endblock %}
+{% block sous_titre %}Mon compte{% endblock %}
+{% block contenu %}
+  <div class="grille-2">
+    <section class="carte" aria-labelledby="titre-identite">
+      <h2 id="titre-identite">Identité</h2>
+      <dl class="detail-ligne">
+        <div><dt>Nom</dt><dd>{{ user.get_full_name|default:"—" }}</dd></div>
+        <div><dt>Adresse e-mail</dt><dd>{{ user.email }}</dd></div>
+        <div><dt>Téléphone</dt><dd>{{ user.telephone|default:"—" }}</dd></div>
+        <div><dt>Rôle</dt><dd>{{ role_libelle|default:"Aucun accès attribué" }}</dd></div>
+      </dl>
+      <p class="aide">Ces informations sont gérées par l'administrateur du groupe.</p>
+    </section>
+
+    <section class="carte" aria-labelledby="titre-securite">
+      <h2 id="titre-securite">Sécurité</h2>
+      <p>
+        Double authentification :
+        {% if mfa %}<span class="statut statut--ok"><span class="ico ico-ok" aria-hidden="true"></span> activée</span>
+        {% else %}<span class="statut statut--alerte"><span class="ico ico-alerte" aria-hidden="true"></span> non activée</span>{% endif %}
+        {% if mfa_obligatoire and not mfa %}<br><span class="aide">Elle est obligatoire pour vos habilitations.</span>{% endif %}
+      </p>
+      <div class="actions-page">
+        <a class="btn btn--secondaire" href="{% url 'mfa_index' %}"><span class="ico ico-cadenas" aria-hidden="true"></span>Double authentification</a>
+        <a class="btn btn--secondaire" href="{% url 'mfa_view_recovery_codes' %}"><span class="ico ico-cle" aria-hidden="true"></span>Codes de récupération</a>
+        <a class="btn btn--secondaire" href="{% url 'account_change_password' %}"><span class="ico ico-compte" aria-hidden="true"></span>Changer mon mot de passe</a>
+      </div>
+    </section>
+  </div>
+
+  <section class="carte" aria-labelledby="titre-acces">
+    <h2 id="titre-acces">Mes accès</h2>
+    {% if est_admin %}<p><span class="lettre lettre--A">A</span> Administrateur groupe : accès à toutes les sociétés et à la Vue Groupe.</p>{% endif %}
+    <p class="libelle">Sociétés</p>
+    <div class="badges">
+      {% for a in affectations %}
+        <span class="badge-acces badge-acces--{{ a.etat }}"><span class="point serie-{{ a.societe.code }}" aria-hidden="true"></span>{{ a.societe.code|upper }} · {{ a.role_court }}
+          {% if a.etat == "expiree" %}<small>expiré le {{ a.date_fin|date:"d/m/Y" }}</small>
+          {% elif a.etat == "future" %}<small>dès le {{ a.date_debut|date:"d/m/Y" }}</small>
+          {% elif a.date_fin %}<small>jusqu'au {{ a.date_fin|date:"d/m/Y" }}</small>{% endif %}</span>
+      {% empty %}<span class="aide">Aucun accès par société.</span>{% endfor %}
+    </div>
+    <p class="libelle">Vue Groupe</p>
+    {% if groupe %}
+      <span class="badge-acces badge-acces--{{ groupe.etat }}">{{ groupe.texte }}{% if groupe.detail %} · détail autorisé{% endif %}
+        {% if groupe.date_fin %}<small>jusqu'au {{ groupe.date_fin|date:"d/m/Y" }}</small>{% endif %}</span>
+    {% else %}<span class="aide">Aucune habilitation Vue Groupe.</span>{% endif %}
+  </section>
+
+  <section class="carte" aria-labelledby="titre-connexions">
+    <h2 id="titre-connexions">Dernières connexions <small>les 10 dernières entrées</small></h2>
+    {% if connexions %}
+      <div class="cadre-tableau">
+        <table class="tableau tableau--simple">
+          <caption class="visuellement-cache">Dernières connexions et tentatives</caption>
+          <thead><tr><th scope="col">Date</th><th scope="col">Événement</th><th scope="col">Adresse IP</th><th scope="col">Navigateur</th></tr></thead>
+          <tbody>
+            {% for l in connexions %}
+              <tr>
+                <td>{{ l.e.date|date:"d/m/Y H:i" }}</td>
+                <td><span class="evenement evenement--{{ l.famille }}"><span class="ico {% if l.famille == 'alerte' %}ico-alerte{% else %}ico-ok{% endif %}" aria-hidden="true"></span>{{ l.e.get_evenement_display }}</span></td>
+                <td>{{ l.e.ip|default:"—" }}</td>
+                <td class="texte-long">{{ l.e.user_agent|default:"—"|truncatechars:70 }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="aide">Une connexion que vous ne reconnaissez pas ? Changez votre mot de passe et prévenez l'administrateur du groupe.</p>
+    {% else %}
+      <div class="etat-vide"><span class="ico ico-vide" aria-hidden="true"></span><p>Aucune connexion enregistrée pour le moment.</p></div>
+    {% endif %}
+  </section>
+{% endblock %}
