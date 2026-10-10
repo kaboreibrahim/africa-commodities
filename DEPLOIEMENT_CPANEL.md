@@ -30,14 +30,14 @@ avec **ALL PRIVILEGES**. Sans cette étape, la connexion est refusée.
 ## 3. Récupérer le code sur le serveur (cPanel → *Git™ Version Control* → *Create*)
 
 - *Clone URL* : l'adresse du dépôt (dépôt privé : ajouter la clé SSH publique fournie par cPanel comme *deploy key*).
-- *Repository Path* : `/home/c2508341c/groupe_marges` (**hors** de `public_html`).
+- *Repository Path* : `/home/c2508341c/repositories/africa-commodities` (**hors** de `public_html`).
 
 ## 4. Créer l'application Python (cPanel → *Setup Python App* → *Create Application*)
 
 | Champ | Valeur |
 |---|---|
-| Python version | 3.11 ou 3.12 |
-| Application root | `groupe_marges` |
+| Python version | 3.12 ou 3.13 |
+| Application root | `repositories/africa-commodities` |
 | Application URL | votre domaine (ou sous-domaine) |
 | Application startup file | `passenger_wsgi.py` |
 | Application Entry point | `application` |
@@ -45,15 +45,15 @@ avec **ALL PRIVILEGES**. Sans cette étape, la connexion est refusée.
 Puis, dans la fenêtre du terminal cPanel (la commande exacte *« Enter to the virtual environment »* est affichée sur la page) :
 
 ```bash
-source /home/c2508341c/virtualenv/groupe_marges/3.11/bin/activate && cd /home/c2508341c/groupe_marges
-pip install -r requirements.txt
+source /home/c2508341c/virtualenv/repositories/africa-commodities/3.13/bin/activate && cd /home/c2508341c/repositories/africa-commodities
+pip install -r requirements.txt        # attention : « pip install », pas seulement « -r »
 ```
 
 Si `psycopg[binary]` ne s'installe pas (inutile avec MySQL), supprimer cette ligne de `requirements.txt` sur le serveur.
 
 ## 5. Configuration (fichier `.env` sur le serveur)
 
-Dans le *Gestionnaire de fichiers*, créer `/home/c2508341c/groupe_marges/.env` (permissions `600`) à partir de
+Dans le *Gestionnaire de fichiers*, créer `/home/c2508341c/repositories/africa-commodities/.env` (permissions `600`) à partir de
 `.env.cpanel` (fichier préparé sur votre PC, **non versionné**). À adapter :
 
 - `DJANGO_ALLOWED_HOSTS` et `DJANGO_CSRF_TRUSTED_ORIGINS` : votre vrai nom de domaine (HTTPS) ;
@@ -64,6 +64,10 @@ Dans le *Gestionnaire de fichiers*, créer `/home/c2508341c/groupe_marges/.env` 
 - `DJANGO_HSTS_SECONDS=300` au premier déploiement, puis `31536000` quand le HTTPS fonctionne partout.
 
 Activer le HTTPS : cPanel → *SSL/TLS Status* → *Run AutoSSL*.
+
+> **Erreur « Set the DJANGO_SECRET_KEY environment variable »** : le fichier `.env` n'existe pas encore sur le serveur
+> (il n'est jamais dans Git). Le créer comme ci-dessus, par exemple `nano .env`, coller le contenu de `.env.cpanel`, puis
+> `chmod 600 .env`. Il contient la ligne `DJANGO_SETTINGS_MODULE=config.settings.prod`, lue par `manage.py`.
 
 ## 6. Initialiser (terminal cPanel, environnement virtuel activé)
 
@@ -76,7 +80,7 @@ python manage.py creer_utilisateur --email admin@votre-domaine.ci --nom NOM --pr
 
 Le mot de passe provisoire s'affiche **une seule fois**. À la première connexion : changement du mot de passe puis
 activation de la 2FA (obligatoire pour l'administrateur). Redémarrer l'application : bouton *Restart* de *Setup Python App*
-(ou `touch /home/c2508341c/groupe_marges/tmp/restart.txt`).
+(ou `touch /home/c2508341c/repositories/africa-commodities/tmp/restart.txt`).
 
 Fichiers statiques : servis par WhiteNoise (rien à configurer dans Apache). Logos téléversés des sociétés : créer le dossier
 `/home/c2508341c/public_html/media` (déjà prévu dans `DJANGO_MEDIA_ROOT`) ; Apache le sert directement.
@@ -86,7 +90,7 @@ Fichiers statiques : servis par WhiteNoise (rien à configurer dans Apache). Log
 Sur votre PC : `git push`. Sur le serveur (*Git Version Control* → *Update from Remote*, ou terminal) :
 
 ```bash
-cd /home/c2508341c/groupe_marges && git pull
+cd /home/c2508341c/repositories/africa-commodities && git pull
 pip install -r requirements.txt
 python manage.py migrate
 python manage.py collectstatic --noinput
@@ -96,8 +100,8 @@ touch tmp/restart.txt
 ## 8. Tâches planifiées (cPanel → *Cron Jobs*)
 
 ```
-15 2 * * *  /home/c2508341c/virtualenv/groupe_marges/3.11/bin/python /home/c2508341c/groupe_marges/manage.py expirer_habilitations
-30 2 * * 0  /home/c2508341c/virtualenv/groupe_marges/3.11/bin/python /home/c2508341c/groupe_marges/manage.py purger_journal
+15 2 * * *  /home/c2508341c/virtualenv/repositories/africa-commodities/3.13/bin/python /home/c2508341c/repositories/africa-commodities/manage.py expirer_habilitations
+30 2 * * 0  /home/c2508341c/virtualenv/repositories/africa-commodities/3.13/bin/python /home/c2508341c/repositories/africa-commodities/manage.py purger_journal
 ```
 
 ## 9. Points d'attention MySQL
