@@ -6,7 +6,7 @@ from django.core.exceptions import ImproperlyConfigured
 from .base import *  # noqa: F401,F403
 from .base import DATABASES, MIDDLEWARE, SECRET_KEY, env
 
-DEBUG = True
+DEBUG = False
 
 # --- Garde-fous : refuser de démarrer avec une configuration dangereuse ---
 if len(SECRET_KEY) < 50:
