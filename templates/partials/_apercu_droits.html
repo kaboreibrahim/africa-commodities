@@ -14,7 +14,7 @@
   <ul class="droits-societes">
     {% for l in apercu.lignes %}
       <li>
-        <span class="cellule-societe"><span class="point serie-{{ l.societe.code }}" aria-hidden="true"></span>{{ l.societe.code|upper }}</span>
+        <span class="cellule-societe">{% include "partials/_logo_societe.html" with societe=l.societe %}{{ l.societe.code|upper }}</span>
         <span class="lettre lettre--{% if l.role == '—' %}aucun{% else %}{{ l.role }}{% endif %}">{{ l.role }}</span>
         <span class="droits-societes__texte">{{ l.actions }}</span>
       </li>

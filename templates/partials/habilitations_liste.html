@@ -19,7 +19,7 @@
               <div class="badges">
                 {% for b in l.badges %}
                   <span class="badge-acces badge-acces--{{ b.etat }}">
-                    <span class="point serie-{{ b.code }}" aria-hidden="true"></span>{{ b.libelle }}
+                    {% include "partials/_logo_societe.html" with societe=b.societe %}{{ b.libelle }}
                     {% if b.etat == "expiree" %}<small>expiré le {{ b.date_fin|date:"d/m/Y" }}</small>
                     {% elif b.etat == "future" %}<small>dès le {{ b.date_debut|date:"d/m/Y" }}</small>
                     {% elif b.date_fin %}<small>jusqu'au {{ b.date_fin|date:"d/m/Y" }}</small>{% endif %}

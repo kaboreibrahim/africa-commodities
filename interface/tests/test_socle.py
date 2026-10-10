@@ -2,6 +2,7 @@ from django.conf import settings
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
+from interface.theme import THEME_GROUPE
 from societes.models import ObjectifMensuel
 
 from .outils import JeuInterfaceMixin
@@ -84,7 +85,7 @@ class ThemeTests(JeuInterfaceMixin, TestCase):
     def test_theme_groupe_neutre(self):
         self.connecter(self.direction)
         css = self.client.get(reverse("interface:theme", args=["groupe"])).content.decode()
-        self.assertIn("--c-principale:#1A2B4A", css)
+        self.assertIn(f"--c-principale:{THEME_GROUPE['principale']}", css)  # thème du groupe : vert nuit
         self.assertEqual(css.count(".serie-"), 5)
 
     def test_theme_non_autorise(self):

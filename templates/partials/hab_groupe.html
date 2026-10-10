@@ -11,7 +11,7 @@
     <legend class="libelle">Sociétés de la portée <small>(pour « Sociétés sélectionnées » : au moins 2)</small></legend>
     <div class="cases-societes">
       {% for cb in form_groupe.societes %}
-        <label class="case">{{ cb.tag }} <span class="point serie-{{ cb.data.value }}" aria-hidden="true"></span><span>{{ cb.choice_label }}</span></label>
+        <label class="case">{{ cb.tag }} {% include "partials/_logo_societe.html" with societe=cb.data.value.instance %}<span>{{ cb.choice_label }}</span></label>
       {% endfor %}
     </div>
   </fieldset>

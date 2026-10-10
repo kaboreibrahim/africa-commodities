@@ -169,6 +169,7 @@ img { max-width: 100%; }
 .onglet--actif { background: rgba(250, 247, 240, .16); color: var(--acr-ivoire); font-weight: 600; }
 .onglet__ok { margin-left: auto; color: #9BE3A8; font-weight: 700; }
 .lateral__bas { margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(250, 247, 240, .14); }
+.logo-societe { width: 22px; height: 22px; flex: none; border-radius: 6px; background: var(--blanc); border: 1px solid var(--bord); object-fit: contain; padding: 1px; }
 .point { width: 10px; height: 10px; border-radius: 50%; background: var(--c-serie, var(--gris)); flex: none; display: inline-block; }
 .lateral .point { box-shadow: 0 0 0 2px rgba(250, 247, 240, .65); }
 

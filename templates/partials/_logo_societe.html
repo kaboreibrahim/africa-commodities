@@ -1,0 +1,1 @@
+{% load format_fr %}{% with logo=societe|logo_url %}{% if logo %}<img class="logo-societe" src="{{ logo }}" alt="" width="22" height="22">{% else %}<span class="point serie-{{ societe.code }}" aria-hidden="true"></span>{% endif %}{% endwith %}

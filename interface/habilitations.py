@@ -46,7 +46,7 @@ def badges_acces(utilisateur, aujourd_hui=None) -> list[dict]:
     badges = []
     for a in utilisateur.affectations.all():
         etat = etat_periode(a, aujourd_hui)
-        badges.append({"code": a.societe.code, "libelle": f"{a.societe.code.upper()} · {ROLES_COURTS[a.role]}", "etat": etat,
+        badges.append({"code": a.societe.code, "societe": a.societe, "libelle": f"{a.societe.code.upper()} · {ROLES_COURTS[a.role]}", "etat": etat,
                        "date_debut": a.date_debut, "date_fin": a.date_fin})
     return badges
 

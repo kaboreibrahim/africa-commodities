@@ -36,7 +36,7 @@
     <p class="libelle">Sociétés</p>
     <div class="badges">
       {% for a in affectations %}
-        <span class="badge-acces badge-acces--{{ a.etat }}"><span class="point serie-{{ a.societe.code }}" aria-hidden="true"></span>{{ a.societe.code|upper }} · {{ a.role_court }}
+        <span class="badge-acces badge-acces--{{ a.etat }}">{% include "partials/_logo_societe.html" with societe=a.societe %}{{ a.societe.code|upper }} · {{ a.role_court }}
           {% if a.etat == "expiree" %}<small>expiré le {{ a.date_fin|date:"d/m/Y" }}</small>
           {% elif a.etat == "future" %}<small>dès le {{ a.date_debut|date:"d/m/Y" }}</small>
           {% elif a.date_fin %}<small>jusqu'au {{ a.date_fin|date:"d/m/Y" }}</small>{% endif %}</span>

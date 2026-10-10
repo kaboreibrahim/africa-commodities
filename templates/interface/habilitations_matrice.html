@@ -13,7 +13,7 @@
         <caption class="visuellement-cache">Rôle de chaque utilisateur sur chaque société</caption>
         <thead><tr>
           <th scope="col">Utilisateur</th>
-          {% for s in societes_matrice %}<th scope="col" class="c"><span class="point serie-{{ s.code }}" aria-hidden="true"></span> {{ s.code|upper }}</th>{% endfor %}
+          {% for s in societes_matrice %}<th scope="col" class="c">{% include "partials/_logo_societe.html" with societe=s %} {{ s.code|upper }}</th>{% endfor %}
           <th scope="col" class="c">Vue Groupe</th>
         </tr></thead>
         <tbody>
