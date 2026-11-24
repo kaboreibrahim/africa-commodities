@@ -56,7 +56,7 @@ class DefinirDepensesTests(JeuUtilisateursMixin, TestCase):
     def test_admin_groupe_saisit_partout(self):
         for societe in Societe.objects.all():
             definir_depenses(self.admin_groupe, societe, date(2026, 10, 1), 500_000)
-        self.assertEqual(DepenseMensuelle.objects.count(), 5)
+        self.assertEqual(DepenseMensuelle.objects.count(), 6)
 
     def test_montant_negatif_refuse_par_le_service(self):
         with self.assertRaises(ValidationError):

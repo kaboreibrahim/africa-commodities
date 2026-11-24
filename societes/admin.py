@@ -42,7 +42,7 @@ class SocieteAdmin(SimpleHistoryAdmin):
     search_fields = ("code", "nom")
     inlines = [ObjectifInline, DepenseMensuelleInline, AffectationSocieteInline]
     fieldsets = (
-        (None, {"fields": ("code", "nom", "actif", "ordre", "logo")}),
+        (None, {"fields": ("code", "nom", "nom_court", "actif", "ordre", "logo")}),
         ("Libellés de l'activité", {"fields": ("libelle_ligne", "libelle_ligne_pluriel", "libelle_reference",
                                                "libelle_quantite", "libelle_marge", "unite")}),
         ("Champ spécifique", {"fields": ("champ_extra_libelle", "champ_extra_type", "champ_extra_choix")}),

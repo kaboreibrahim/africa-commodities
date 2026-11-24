@@ -62,7 +62,7 @@
     return {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: mouvementReduit() ? 0 : 400 },
+      animation: { duration: mouvementReduit() ? 0 : 1200, easing: "easeOutQuart" },
       plugins: { legend: { display: false } }
     };
   }
@@ -70,7 +70,8 @@
   function axeMontants() {
     return {
       beginAtZero: true,
-      ticks: { callback: function (v) { return court(v); }, color: variable("--gris", "#5B6472") },
+      // precision 0 : pas de graduations 0,2 / 0,4… (affichées « 0 0 1 1 ») quand tout vaut 0.
+      ticks: { precision: 0, callback: function (v) { return court(v); }, color: variable("--gris", "#5B6472") },
       grid: { color: variable("--gris-clair", "#E5E7EB") }
     };
   }
@@ -283,6 +284,8 @@
       },
       options: Object.assign(optionsCommunes(), {
         cutout: "62%",
+        // Remplissage de l'anneau en tournant, depuis le centre.
+        animation: { animateRotate: true, animateScale: true, duration: mouvementReduit() ? 0 : 1400, easing: "easeOutQuart" },
         plugins: {
           legend: { display: false },
           texteCentre: { texte: donnees.centre, sousTitre: donnees.sousTitre },

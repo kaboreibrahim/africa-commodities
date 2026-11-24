@@ -630,3 +630,34 @@ dialog.dialogue::backdrop { background: rgba(6, 42, 24, .5); }
   body { background: var(--blanc); }
   .carte { break-inside: avoid; box-shadow: none; }
 }
+
+/* ==========================================================================
+   Animations (static/js/animations.js) : cascade d'apparition, révélation circulaire.
+   ========================================================================== */
+.anim-pret {
+  opacity: 0;
+  transform: translateY(14px) scale(.985);
+  transition: opacity .55s cubic-bezier(.22, 1, .36, 1), transform .65s cubic-bezier(.22, 1, .36, 1);
+}
+.anim-pret.anim-visible { opacity: 1; transform: none; }
+tr.anim-pret { transform: translateX(-10px); }
+tr.anim-pret.anim-visible { transform: none; }
+
+/* Le filet coloré des indicateurs se trace de haut en bas. */
+.kpi.anim-pret::before { transform: scaleY(0); transform-origin: top; transition: transform .7s cubic-bezier(.22, 1, .36, 1) .25s; }
+.kpi.anim-pret.anim-visible::before { transform: scaleY(1); }
+
+/* Icônes des cartes objectif / dépenses : révélation en cercle. */
+.param.anim-pret .param__icone { clip-path: circle(0% at 50% 50%); transition: clip-path .8s cubic-bezier(.22, 1, .36, 1) .2s; }
+.param.anim-pret.anim-visible .param__icone { clip-path: circle(75% at 50% 50%); }
+
+/* Cartes : léger relief au survol. */
+.kpi, .carte, .param { transition: box-shadow .25s ease, transform .25s ease; }
+@media (hover: hover) {
+  .kpi:hover, .param:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16, 24, 40, .08); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-pret, .anim-pret::before, .anim-pret .param__icone { transition: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
+  .kpi:hover, .param:hover { transform: none; }
+}

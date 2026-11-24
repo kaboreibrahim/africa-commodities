@@ -1,4 +1,4 @@
-{% load static %}<!DOCTYPE html>
+{% load societes_tags static %}<!DOCTYPE html>
 <html lang="fr"{% block html_attrs %}{% endblock %}>
 <head>
   <meta charset="utf-8">
@@ -45,11 +45,8 @@
       </div>
 
       <ul class="marque__societes" aria-label="Sociétés du groupe">
-        <li>Oils of Africa</li>
-        <li>Africa Newport &amp; Logistics</li>
-        <li>OTL &amp; Bulk Liquid</li>
-        <li>Alon Properties</li>
-        <li>Mon Livreur Pro</li>
+        {% societes_actives as noms_societes %}{% for nom in noms_societes %}
+        <li>{{ nom }}</li>{% endfor %}
       </ul>
 
       <div class="marque__pied">

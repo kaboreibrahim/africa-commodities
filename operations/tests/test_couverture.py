@@ -105,7 +105,7 @@ class CouvertureSelecteursTests(TestCase):
         DepenseMensuelle.objects.create(societe=Societe.objects.get(code="mlp"), mois=OCTOBRE, montant=10_000)
         with self.assertNumQueries(5):
             synthese = synthese_groupe(OCTOBRE)
-        self.assertEqual(len(synthese), 5)
+        self.assertEqual(len(synthese), 6)
         par_code = {r["societe"].code: r for r in synthese}
         self.assertEqual(par_code["ooa"]["depenses"], 1_200_000)
         self.assertFalse(par_code["ooa"]["couverture"].couvert)
@@ -115,7 +115,7 @@ class CouvertureSelecteursTests(TestCase):
         # Nombre de requêtes stable : il ne dépend pas du nombre de sociétés
         Societe.objects.filter(code="otl").update(actif=False)
         with self.assertNumQueries(5):
-            self.assertEqual(len(synthese_groupe(OCTOBRE)), 4)
+            self.assertEqual(len(synthese_groupe(OCTOBRE)), 5)
 
     def test_charges_vs_depenses_par_mois(self):
         DepenseMensuelle.objects.create(societe=self.ooa, mois=date(2026, 3, 1), montant=50_000)

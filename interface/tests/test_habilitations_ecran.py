@@ -216,11 +216,11 @@ class MatriceEtCreationTests(EcranBase):
         csv = self.client.get(reverse("interface:habilitations_matrice"), {"format": "csv"})
         self.assertEqual(csv["Content-Type"], "text/csv; charset=utf-8")
         lignes = csv.content.decode("utf-8-sig").splitlines()
-        self.assertEqual(lignes[0], "Utilisateur;E-mail;OOA;ANL;OTL;ALON;MLP;Vue Groupe")
+        self.assertEqual(lignes[0], "Utilisateur;E-mail;OOA;OOA-LR;ANL;OTL;ALON;MLP;Vue Groupe")
         direction = next(l for l in lignes if l.startswith("direction") or "direction@" in l)
-        self.assertTrue(direction.endswith(";G;G;G;G;G;T"))
+        self.assertTrue(direction.endswith(";G;G;G;G;G;G;T"))
         resp = next(l for l in lignes if "resp_ooa@" in l)
-        self.assertTrue(resp.endswith(";R;—;—;—;—;—"))
+        self.assertTrue(resp.endswith(";R;—;—;—;—;—;—"))
 
     def donnees(self, **extra):
         donnees = {"prenom": "Awa", "nom": "Kone", "email": "Awa.Kone@exemple.ci", "role_global": ""}

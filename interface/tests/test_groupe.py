@@ -65,13 +65,13 @@ class VueGroupeTests(JeuInterfaceMixin, TestCase):
         DepenseMensuelle.objects.create(societe=self.ooa, mois=mois, montant=40_000)
         self.connecter(self.direction)
         reponse = self.client.get(self.url)
-        for texte in ("Marge du groupe", "Sociétés à l'objectif", "Sociétés aux charges couvertes", "1 / 5",
+        for texte in ("Marge du groupe", "Sociétés à l'objectif", "Sociétés aux charges couvertes", "1 / 6",
                       "Total Africa Commodities", "TOTAL GROUPE", "Reste / Excédent", "non saisies",
                       'data-href="/s/ooa/"', 'data-graphique="groupe-charges"', 'data-graphique="groupe-mois"'):
             self.assertContains(reponse, texte)
         self.assertNotContains(reponse, 'id="form-ligne"')  # aucun formulaire de saisie
         donnees = reponse.context["graphiques"]
-        self.assertEqual(len(donnees["mois"]["series"]), 5)
+        self.assertEqual(len(donnees["mois"]["series"]), 6)
         self.assertEqual(len(donnees["mois"]["tableau"]), 12)
         self.assertEqual(donnees["charges"]["etiquettes"][0], "OOA ✔")
         self.assertAlmostEqual(sum(p["part"] for p in donnees["africaCommodities"]["parts"]), 100.0)

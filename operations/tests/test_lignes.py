@@ -114,7 +114,7 @@ class SelecteursTests(TestCase):
 
     def test_synthese_groupe(self):
         s = {r["societe"].code: r for r in synthese_groupe(date(2026, 10, 1))}
-        self.assertEqual(len(s), 5)
+        self.assertEqual(len(s), 6)
         self.assertEqual(s["ooa"]["marge"], 2_700_000)
         self.assertTrue(s["ooa"]["objectif_atteint"])
         self.assertEqual(s["mlp"]["marge"], 250_000)

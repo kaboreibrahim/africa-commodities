@@ -84,10 +84,10 @@ class PorteeTests(HabilitationsBase):
 
     def test_portee_toutes_inclut_une_societe_creee_ensuite(self):
         self.vue_groupe()
-        self.assertEqual(len(self.ouvrir(self.rien, URL_GROUPE).context["synthese"]), 5)
+        self.assertEqual(len(self.ouvrir(self.rien, URL_GROUPE).context["synthese"]), 6)
         Societe.objects.create(code="nouv", nom="Nouvelle société")
         reponse = self.client.get(URL_GROUPE)
-        self.assertEqual(len(reponse.context["synthese"]), 6)
+        self.assertEqual(len(reponse.context["synthese"]), 7)
         self.assertContains(reponse, "toutes les sociétés")
 
     def test_sans_detail_pas_d_acces_aux_societes(self):

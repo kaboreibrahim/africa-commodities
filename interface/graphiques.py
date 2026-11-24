@@ -90,8 +90,8 @@ def donnees_tableau_de_bord(donnees: dict, societe) -> dict:
 
 
 def nom_court(societe) -> str:
-    """Libellé court d'une société dans les graphiques (code, sauf noms courts lisibles)."""
-    return {"alon": "ALON Prop.", "mlp": "Mon Livreur Pro"}.get(societe.code, societe.code.upper())
+    """Libellé court d'une société dans les graphiques : son nom court, sinon son code en majuscules."""
+    return societe.nom_court or societe.code.upper()
 
 
 def donnees_groupe(synthese: list[dict], total: dict, marges_annee: dict, mois) -> dict:

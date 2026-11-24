@@ -16,6 +16,7 @@
   <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
   <script src="{% static 'js/confettis.js' %}" defer></script>
+  <script src="{% static 'js/animations.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' hx-inherit="hx-headers">

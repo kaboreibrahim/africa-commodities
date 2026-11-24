@@ -43,7 +43,7 @@ class OngletsTests(JeuInterfaceMixin, TestCase):
     def test_direction_voit_toutes_les_societes_et_la_vue_groupe(self):
         self.connecter(self.direction)
         reponse = self.client.get(reverse("interface:tableau", args=["ooa"]))
-        self.assertEqual(len(reponse.context["onglets"]), 5)
+        self.assertEqual(len(reponse.context["onglets"]), 6)
         self.assertContains(reponse, "Vue Groupe")
 
     def test_coche_quand_l_objectif_est_atteint(self):
@@ -86,7 +86,7 @@ class ThemeTests(JeuInterfaceMixin, TestCase):
         self.connecter(self.direction)
         css = self.client.get(reverse("interface:theme", args=["groupe"])).content.decode()
         self.assertIn(f"--c-principale:{THEME_GROUPE['principale']}", css)  # thème du groupe : vert nuit
-        self.assertEqual(css.count(".serie-"), 5)
+        self.assertEqual(css.count(".serie-"), 6)
 
     def test_theme_non_autorise(self):
         self.connecter(self.saisie_anl)

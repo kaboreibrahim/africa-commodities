@@ -34,7 +34,7 @@ class SocieteQuerySet(models.QuerySet):
 
 
 class Societe(TimestampMixin, models.Model):
-    """Une société du groupe (OOA, ANL, OTL, ALON Properties, Mon Livreur Pro)."""
+    """Une société du groupe (OOA, OOA Liberia, ANL, OTL, ALON Properties, Mon Livreur Pro…)."""
 
     class TypeChampExtra(models.TextChoices):
         AUCUN = "", "Aucun"
@@ -43,6 +43,10 @@ class Societe(TimestampMixin, models.Model):
 
     code = models.SlugField("code", max_length=10, unique=True)
     nom = models.CharField("nom", max_length=120, unique=True)
+    nom_court = models.CharField(
+        "nom court", max_length=30, blank=True,
+        help_text="Libellé affiché dans les graphiques du groupe (sinon le code en majuscules).",
+    )
     actif = models.BooleanField("active", default=True)
     ordre = models.PositiveSmallIntegerField("ordre d'affichage", default=0)
 

@@ -127,7 +127,7 @@ class QuerysetsFiltresTests(JeuUtilisateursMixin, TestCase):
     def test_admin_et_direction_voient_tout(self):
         for user in (self.admin_groupe, self.direction):
             self.assertEqual(Ligne.objects.pour_utilisateur(user).count(), 4)
-            self.assertEqual(Societe.objects.pour_utilisateur(user).count(), 5)
+            self.assertEqual(Societe.objects.pour_utilisateur(user).count(), 6)
 
     def test_societes_clients_objectifs(self):
         self.assertEqual(list(Societe.objects.pour_utilisateur(self.saisie_ooa)), [self.ooa])

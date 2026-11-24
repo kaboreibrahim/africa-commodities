@@ -8,8 +8,8 @@ from societes.models import Client, ObjectifMensuel, Societe
 
 
 class SocietesInitialesTests(TestCase):
-    def test_cinq_societes_creees(self):
-        self.assertEqual(list(Societe.objects.values_list("code", flat=True)), ["ooa", "anl", "otl", "alon", "mlp"])
+    def test_societes_initiales_creees(self):
+        self.assertEqual(list(Societe.objects.values_list("code", flat=True)), ["ooa", "ooa-lr", "anl", "otl", "alon", "mlp"])
 
     def test_champs_specifiques(self):
         self.assertEqual(Societe.objects.get(code="alon").choix_extra, ["Location", "Vente"])
